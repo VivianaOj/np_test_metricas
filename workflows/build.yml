@@ -46,3 +46,9 @@ jobs:
           .\.sonar\scanner\dotnet-sonarscanner begin /k:"VivianaOj_np_test_metricas" /o:"vivianaoj" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
           dotnet build
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: Run tests with coverage
+        run: dotnet test --collect:"XPlat Code Coverage" --results-directory ./test-results
+
+      - name: Publish coverage report
+        run: |
+          reportgenerator -reports:"./test-results/**/coverage.cobertura.xml" -targetdir:"coverage-reports" -reporttypes:Cobertura
