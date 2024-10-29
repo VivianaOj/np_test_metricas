@@ -1,0 +1,743 @@
+﻿@model CheckoutShippingMethodModel
+@using System.Text
+@{
+
+    //scripts
+    Html.AddScriptParts(ResourceLocation.Footer, "~/js/public.accordion.js");
+    Html.AddScriptParts(ResourceLocation.Footer, "~/js/public.onepagecheckout.js");
+    Html.AddScriptParts(ResourceLocation.Footer, "~/js/JavaScript.js");
+
+    var cont = 0;
+    }
+
+
+<div class="message-error">
+    @if (Model.Warnings.Count > 0)
+    {
+        @if (!Model.UnShippable)
+        {
+            <div role="alert" data-shipping-warning="" style="border-color: #fad9d9; background-color: #ffebeb; width: 50%; margin: auto; font-size: 1.2em !important; " data-banner="true" class="notice notice--error default-background" tabindex="-1"
+                 aria-atomic="true" aria-live="polite">
+                <div class="notice__content">
+                    <p class="notice__text">
+                        @{
+                            string message = T("checkout.dontloadshippingmethod").ToString();
+                            {
+                                if (message.Contains("Is not a valid address for the specified shipment"))
+                                {
+                                    message = "This order contains items that are not available for a UPS shipment";
+                                }
+                            }
+                            <span>@message</span>
+                        }
+                    </p>
+                </div> <!--AQUI bug 1 alejo-->
+            </div>
+        }
+    }
+    <div id="SelectPickUpAlert" role="alert" data-shipping-warning="" style="display:none; border-color: #fad9d9; background-color: #ffebeb; width: 50%; margin: auto; font-size: 1.2em !important; " data-banner="true" class="notice notice--error default-background" tabindex="-1"
+         aria-atomic="true" aria-live="polite">
+        <div class="notice__content">
+            <p class="notice__text">
+                Please select a pickup location or shipping method before continuing.
+            </p>
+        </div> <!--AQUI bug 1 alejo-->
+    </div>
+
+    @if (Model.UnShippable)
+    {
+        <div role="alert" data-shipping-warning="" style="border-color: #fad9d9; width: 79%; padding: 0px; margin: auto; text-align: center; font-size: 13px; color: #e4434b; " data-banner="true" class="notice notice--error default-background" tabindex="-1"
+             aria-atomic="true" aria-live="polite">
+            <div class="notice__content">
+                <p class="notice__text">
+                    @T("checkout.UnShippableProducts") <a href="/cart" style="font-weight:900; color:#37AEF3 !important"> @T("checkout.cart")</a>
+                </p>
+            </div> <!--AQUI bug 1 alejo-->
+        </div>
+    }
+
+    
+</div>
+
+        <br />
+        <br />
+        @if (Model.AllowPickupInStore && Model.PickupPoints.Any())
+        {
+            <div class="row">
+                <div class="wop col-12 col-lg-4"></div>
+                <div class="wop col-12 col-lg-8">
+                    <div class="form-group">
+
+                        <label class="containerRadio shipping-options">
+                            <input type="checkbox" id="shippingoption_PickupInStore" name="shippingoption" value="false" />
+                            <input type="hidden" id="PickupInStore" name="PickupInStore" value="true">
+                            @*onclick="Shipping.togglePickupInStore(this);"*@
+                            <label style=" font-style: normal; font-weight: 600; font-size: 14px ; line-height: 18px; align-items: center; color: #455A64;" asp-for="PickupInStore">@T("Checkout.PickupPoints")</label>
+                            <span class="checkmark payment-method-radio"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        }
+<div class="row upsInfo">
+    <div class="wop col-lg-12">
+        @if (Model.AllowPickupInStore)
+        {
+            <div class="section pickup-points" id="pickup-points-form">
+                @if (Model.PickupPoints.Any())
+                {
+                    if (Model.PickupInStoreOnly)
+                    {
+                        <input type="hidden" asp-for="PickupInStore" />
+                    }
+                    <div class="select-pickup-points">
+                        @if (Model.PickupPoints.Count == 1)
+                        {
+                            var point = Model.PickupPoints.First();
+                            <input name="pickup-points-id" id="pickup-points-id" type="hidden" value="@($"{point.Id}___{point.ProviderSystemName}")" />
+                            <div class="single-pickup-point">
+                                <ul>
+                                    <li class="single-pickup-point name">@point.Name</li>
+                                    <li class="single-pickup-point address">@($"{point.Address} {point.City} {point.County} {point.StateName} {point.CountryName}")</li>
+                                    @if (!string.IsNullOrEmpty(point.PickupFee))
+                                    {
+                                        <li class="single-pickup-point fee">@point.PickupFee</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            @* <label for="pickup-points-select">@T("Checkout.PickupPoints.SelectPickupPoint")</label>*@
+                            <select onchange="ValidateName()" class="select-store-pick-up" name="pickup-points-id" id="pickup-points-select" style="display:none;">
+                                @foreach (var point in Model.PickupPoints)
+                                {
+                                    var addressLine = new StringBuilder();
+                                    addressLine.Append(point.Name);
+                                    if (!string.IsNullOrEmpty(point.Address))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.Address);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.City))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.City);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.County))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.County);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.StateName))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.StateName);
+                                    }
+
+                                    <option value="@($"{point.Id}___{point.ProviderSystemName}")">@(addressLine)</option>
+
+                                }
+                            </select>
+
+
+                            @foreach (var point in Model.PickupPoints)
+                            {
+
+
+                                var addressLine = new StringBuilder();
+                                addressLine.Append(point.Name);
+                                if (!string.IsNullOrEmpty(point.Address))
+                                {
+                                    addressLine.AppendFormat(", {0}", point.Address);
+                                }
+                                if (!string.IsNullOrEmpty(point.City))
+                                {
+                                    addressLine.AppendFormat(", {0}", point.City);
+                                }
+                                if (!string.IsNullOrEmpty(point.County))
+                                {
+                                    addressLine.AppendFormat(", {0}", point.County);
+                                }
+                                if (!string.IsNullOrEmpty(point.StateName))
+                                {
+                                    addressLine.AppendFormat(", {0}", point.StateName);
+                                }
+                                <a onclick="showOptions('select-03');" class="option-selected-SM fontSize" id="option-seleted-03">@addressLine</a>
+                                <img class="img-option-shipping" src="~/images/chevrone-down-2.png" style="float: right; width: 15px; height: 15px; position: absolute; top: 12px; left: 110%;" onclick="showOptions('3');" />
+                                break;
+
+
+
+                            }
+
+                            <div class="div-select-options-SM" id="select-03" style="display: none;">
+                                @foreach (var point in Model.PickupPoints)
+                                {
+                                    var addressLine = new StringBuilder();
+                                    addressLine.Append(point.Name);
+                                    if (!string.IsNullOrEmpty(point.Address))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.Address);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.City))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.City);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.County))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.County);
+                                    }
+                                    if (!string.IsNullOrEmpty(point.StateName))
+                                    {
+                                        addressLine.AppendFormat(", {0}", point.StateName);
+                                    }
+                                    <div class="div-select-option"><a onclick="selectItem('@($"{point.Id}___{point.ProviderSystemName}")','select-03', 'option-seleted-03', '@addressLine', 'pickup-points-select');">@addressLine</a></div>
+                                }
+                            </div>
+
+
+                        }
+
+
+                    </div>
+
+                }
+
+            </div>
+            <div class="content_pickupPersonNote" style="display:none">
+                <label onclick="ShowPickupField()" style="color: #37AEF3 !important; font-weight: 800;" id="Add_pickupPersonNote" class=" Title_pickupPersonNote" 
+                       for="PickupInStore">+ @T("checkout.AddPickupPerson")</label>
+
+                <div id="field_pickupPersonNote" style="display:none">
+                    <label class="Title_pickupPersonNote" for="PickupInStore">@T("checkout.pickupPersonNote")</label><br>
+                    <textarea class="pickupPersonNote" id="pickupPersonNote" name="pickupPersonNote" maxlength="500"></textarea>
+                </div>
+               
+            </div>
+                }
+
+    </div>
+
+
+    </div>
+                    <div class="row upsInfo" style="margin-top: 15px;">
+                        <div class="wop col-lg-4"></div>
+                        <div class="wop col-12 col-lg-8">
+                            <div class="form-group">
+                                <label class="containerRadio shipping-options">
+                                    <input type="checkbox" name="group1" @*name="payCard payment-method-label"*@ id="shippingoption_ShippingService">Shipping Options
+                                    <span class="checkmark payment-method-radio"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <script>
+
+
+                        function ShowPickupField() {
+                            $("#field_pickupPersonNote").css("display", "block")
+                            $("#Add_pickupPersonNote").css("display", "none")
+                        }
+                        
+                        $('input[type="checkbox"]').on('change', function () {
+                            $('input[name="' + this.name + '"]').not(this).prop('checked', false);
+                        });
+
+                        $('.nndelivery input[type=radio]').on('click', function () {
+
+                            $('#ShippingRateComputationMethodSystemName-div').hide();
+                            $('.shipping-method-radio').prop("checked", false);
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#shippingoption_ShippingService').prop("checked", true);
+                            $('#shippingoption_UPS').prop("checked", false);
+                            $('#shippingoption_UPS').prop("value", false);
+
+                            $('.shipping-method-radio').prop("checked", false);
+
+                            $("#shippingMethodNext").removeClass("disabled");
+                            $("#shippingMethodNext").prop("disabled", false);
+
+                            $("#shippingMethodNext").css("opacity", "1");
+
+                            $(".content_pickupPersonNote").css("display", "none")
+                            
+                        });
+
+
+                        $('#shippingoption_PickupInStore').on('click',
+                            function (e) {
+                                // UnChecked();
+                                // Shipping.togglePickupInStore(this);
+
+                                //hide selector
+                                $('#pickup-points-form').show();
+
+                                $('#shippingoption_PickupInStore').val("true");
+                                $('#PickupInStore').val("true");
+                                $('#shippingoption_PickupInStore').prop("checked", true);
+                                $('#shippingoption_FreightQuote').prop("checked", false);
+                                $('#shippingoption_ShippingService').prop("checked", false);
+                                $('#shippingoption_UPS').prop("checked", false);
+                                $('.shipping-method-radio').prop("checked", false);
+
+                                $('.nndelivery input[type=radio]').each(function () {
+                                    $(this).prop("checked", false);
+                                });
+
+                                //hide
+                                $('.shipping-method').hide();
+                                $('#send-request-div').hide();
+
+                                //$('#shippingoption_0').prop("checked", false);
+                                ShippingMethod.togglePickupInStore(this);
+                                $("#shippingMethodNext").removeClass("disabled");
+                                $("#shippingMethodNext").prop("disabled", false);
+
+                                $("#shippingMethodNext").css("opacity", "1");
+
+                                var checkbox = document.getElementById("shippingoption_PickupInStore");
+                               
+                                if (checkbox.checked) {
+                                    $(".content_pickupPersonNote").css("display", "block")
+                                } else {
+                                    $(".content_pickupPersonNote").css("display", "none")
+                                }
+
+                               });
+
+                        $('#shippingoption_FreightQuote').on('click',
+                            function (e) {
+                                $('#ShippingRateComputationMethodSystemName-div').hide();
+                                $('.shipping-options-legend').show();
+
+                                $('.shipping-method-radio').prop("checked", false);
+                                $('#shippingoption_PickupInStore').prop("checked", false);
+                                $('#shippingoption_ShippingService').prop("checked", true);
+                                $('#shippingoption_UPS').prop("checked", false);
+                                $('.shipping-method-radio').prop("checked", false);
+                                $('.nndelivery input[type=radio]').each(function () {
+                                    $(this).prop("checked", false);
+                                });
+                                $('#PickupInStore').val("false");
+
+                               
+                                $(".content_pickupPersonNote").css("display", "none")
+
+                            });
+
+                        $('#shippingoption_UPS').on('click',
+                            function (e) {
+                                $("#SelectPickUpAlert").css("display", "none");
+                                $("#option-seleted-03").css("border", "1px solid #ddd");
+
+                                $('#shippingoption_PickupInStore').prop("checked", false);
+                                $('#PickupInStore').val("false");
+                                $('#PickupInStore').prop("checked", false);
+
+                                $('#ShippingRateComputationMethodSystemName-div').show();
+                                $('.shipping-options-legend').hide();
+
+                                $('.nndelivery input[type=radio]').each(function () {
+                                    $(this).prop("checked", false);
+                                });
+
+                                $('#shippingoption_ShippingService').prop("checked", true);
+                                $('#shippingoption_UPS').prop("checked", true);
+                                $('#shippingoption_0').prop("checked", true);
+                                $("#shippingMethodNext").prop("disabled", false);
+
+                                $("#shippingMethodNext").css("opacity", "1");
+
+                               
+                                $(".content_pickupPersonNote").css("display", "none")
+                            });
+
+                        $('.shipping-method-radio').on('click',
+                            function (e) {
+
+                                $("#SelectPickUpAlert").css("display", "none");
+                                $("#option-seleted-03").css("border", "1px solid #ddd");
+
+                                $('#shippingoption_PickupInStore').prop("checked", false);
+                                $('#PickupInStore').val("false");
+                                $('#PickupInStore').prop("checked", false);
+
+                                $('#shippingoption_FreightQuote').prop("checked", false);
+                                $('#shippingoption_UPS').prop("checked", true);
+                                $('#shippingoption_ShippingService').prop("checked", true);
+                                $('#shippingoption_PickupInStore').prop("checked", false);
+                                $("#shippingMethodNext").removeClass("disabled");
+                                $("#shippingMethodNext").prop("disabled", false);
+                                $('#shippingoption_Delivery').prop("checked", true);
+
+                                $("#shippingMethodNext").css("opacity", "1");
+                            });
+
+                        $('#shippingoption_ShippingService').on('click', function (e) {
+
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#PickupInStore').val("false");
+                            $('#PickupInStore').prop("checked", false);
+
+                            $("#SelectPickUpAlert").css("display", "none");
+                            $("#option-seleted-03").css("border", "1px solid #ddd");
+
+                            //hide panel check
+                            $('.shipping-method').show();
+                            $('#send-request-div').show();
+                            $('#ShippingRateComputationMethodSystemName-div').show();
+
+                            $('#shippingoption_ShippingService').prop("checked", true);
+                            $('#shippingoption_UPS').prop("checked", true);
+                            $('#shippingoption_0').prop("checked", true);
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#shippingoption_Delivery').prop("checked", false);
+
+                            $('.nndelivery input[type=radio]').each(function () {
+                                $(this).prop("checked", false);
+                            });
+
+
+                            $('.shipping-options-legend').hide();
+
+                            //hide selector
+                            $('#pickup-points-form').hide();
+                            $("#shippingMethodNext").removeClass("disabled");
+                            $("#shippingMethodNext").prop("disabled", false);
+
+                            $("#shippingMethodNext").css("opacity", "1");
+
+
+                            $(".content_pickupPersonNote").css("display", "none")
+
+                        });
+
+                        function CheckedShippingService() {
+                            $('#shippingoption_ShippingService').prop("checked", true);
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+
+                            var optionP = $('#shippingoption_PickupInStore');
+                            Shipping.togglePickupInStore(optionP);
+                        }
+
+                        function UnChecked() {
+                            $('#shippingoption_ShippingService').prop("checked", false);
+                            $('#shippingoption_UPS').prop("checked", false);
+                            $('#shippingoption_Delivery').prop("checked", false);
+                            $('#shippingoption_N').prop("checked", false);
+                        }
+
+                    </script>
+
+                    <div class="checkout-data">
+                        <div class="shipping-method" id="upc-div">
+                            @if (!Model.UnShippable)
+                            {
+                                <div class="row">
+                                    <div class="col-lg-4"></div>
+                                    <div class="col-lg-8">
+                                        <div class="form-group" style="margin-left:33px;">
+
+                                            <label class="containerRadio">
+                                                <input id="shippingoption_UPS" onclick="ShowUPSOptions();" type="radio" name="shippingoption_UPS" value="@T("admin.configuration.shipping.method.ups")___@T("admin.configuration.shipping.method.ups")">
+                                                <label class="shipping-options" for="shippingoption_UPS">@T("admin.configuration.shipping.method.ups")</label>
+                                                <span class="checkmark payment-method-radio"></span>
+                                            </label>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OpCheckoutShippingMethodTop })
+                            @if (Model.Warnings.Count >= 0)
+                            {
+
+
+                                <div id="ShippingRateComputationMethodSystemName-div" class="text-left">
+                                    @for (var i = 0; i < Model.ShippingMethods.Count; i++)
+                                    {
+
+                                        var shippingMethod = Model.ShippingMethods[i];
+                                        if (shippingMethod.ShippingRateComputationMethodSystemName != "Shipping.NNDelivery")
+                                        {
+                                            if (!Model.UnShippable)
+                                            {
+
+                                                <div class="row">
+                                                    <div class="col-lg-5"></div>
+                                                    <div class="col-lg-5">
+                                                        <div class="method-name">
+                                                            <input class="shipping-method-radio" id="shippingoption_@(cont)" type="radio" name="shippingoption" value="@(shippingMethod.Name)___@(shippingMethod.ShippingRateComputationMethodSystemName)___@(shippingMethod.address)" checked="@shippingMethod.Selected" />
+                                                            <label class="shipping-method-label" for="shippingoption_@(cont)">@T("Checkout.SelectShippingMethod.MethodAndFee", shippingMethod.Name, shippingMethod.Fee)</label>
+                                                        </div>
+                                                        @if (!string.IsNullOrEmpty(shippingMethod.Description))
+                                                        {
+                                                            <div class="method-description">
+                                                                @Html.Raw(shippingMethod.Description)
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                    @*<div class="col-lg-4"></div>*@
+                                                </div>
+                                            }
+                                            cont = cont + 1;
+                                        }
+                                    }
+
+                                </div>
+
+                                if (Model.IsAccoutCustomer)
+                                {
+                                    if (Model.ShippingMethods.Count > 0)
+                                    {
+                                        var shippingMethod2 = Model.ShippingMethods.Where(r => r.ShippingRateComputationMethodSystemName == "Shipping.NNDelivery").OrderBy(r => r.ShippingOption.Disable).ToList();
+                                        if (shippingMethod2.Count > 0)
+                                        {
+                                            if (shippingMethod2.Count == 1)
+                                            {
+                                                <div class="row">
+                                                    <div class="col-lg-4"></div>
+                                                    <div class="col-lg-8">
+                                                        <div class="form-group" style="margin-left:33px;">
+                                                            <label class="containerRadio">
+                                                                @if (shippingMethod2.FirstOrDefault().ShippingOption.Disable)
+                                                                {
+                                                                    <input id="shippingoption_Delivery" onclick="ShowNNDeliveryOptions();" type="radio" name="shippingoption" value="@(shippingMethod2.FirstOrDefault().Name)___@(shippingMethod2.FirstOrDefault().ShippingRateComputationMethodSystemName)" disabled="disabled" />
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    <input id="shippingoption_Delivery" onclick="ShowNNDeliveryOptions();" type="radio" name="shippingoption" value="@(shippingMethod2.FirstOrDefault().Name)___@(shippingMethod2.FirstOrDefault().ShippingRateComputationMethodSystemName)" />
+
+                                                                }
+
+                                                                <label class="shipping-options" for="shippingoption_UPS">@T("Checkout.SelectShippingMethod.MethodAndFee", shippingMethod2.FirstOrDefault().Name, shippingMethod2.FirstOrDefault().Fee)</label>
+                                                                <span class="checkmark payment-method-radio"></span>
+                                                            </label>
+                                                            @if (!string.IsNullOrEmpty(shippingMethod2.FirstOrDefault().Description))
+                                                            {
+                                                                <div class="method-description">
+                                                                    @Html.Raw(shippingMethod2.FirstOrDefault().Description)
+                                                                </div>
+                                                            }
+
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                var validAddress = shippingMethod2.Where(s => !s.ShippingOption.Disable);
+
+
+                                                <div class="row">
+                                                    <div class="col-lg-4"></div>
+                                                    <div class="col-lg-8">
+                                                        <div class="form-group" style="margin-left:33px;">
+                                                            <label class="containerRadio">
+                                                                @if (validAddress.Count() > 0)
+                                                                {
+                                                                    <input id="shippingoption_Delivery" onclick="ShowNNDeliveryOptions();" type="radio" name="shippingoption_Delivery" value="@(shippingMethod2.FirstOrDefault().Name)___@(shippingMethod2.FirstOrDefault().ShippingRateComputationMethodSystemName)___@(shippingMethod2.FirstOrDefault().AddressId)" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <input id="shippingoption_Delivery" onclick="ShowNNDeliveryOptions();" type="radio" name="shippingoption_Delivery" value="@(shippingMethod2.FirstOrDefault().Name)___@(shippingMethod2.FirstOrDefault().ShippingRateComputationMethodSystemName)___@(shippingMethod2.FirstOrDefault().AddressId)" disabled />
+                                                                }
+                                                                <label class="shipping-options" for="shippingoption_UPS">@T("Checkout.SelectShippingMethod.MethodAndFee", shippingMethod2.FirstOrDefault().Name, shippingMethod2.FirstOrDefault().Fee)</label>
+                                                                <span class="checkmark payment-method-radio"></span>
+                                                            </label>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-left NNdeliveryRoutesList">
+
+                                                    @foreach (var shippingMethod in shippingMethod2)
+                                                    {
+                                                        cont = cont + 1;
+                                                        if (!shippingMethod.ShippingOption.Disable)
+                                                        {
+                                                            <div class="row nndelivery mt-2">
+                                                                <div class="col-lg-5"></div>
+                                                                <div class="col-lg-5">
+                                                                    <div class="form-group my-auto">
+                                                                        <div class="method-name">
+                                                                            <input class="shipping-method-radio-nn" id="shippingoptionDelivery_@(cont)" type="radio" name="shippingoption" value="@(shippingMethod.Name)___@(shippingMethod.ShippingRateComputationMethodSystemName)___@(shippingMethod.AddressId)" checked="@shippingMethod.Selected" />
+                                                                            <label class="shipping-method-label" for="shippingoptionDelivery_@(cont)" style=" margin-left: 0px;">@shippingMethod.address</label>
+                                                                        </div>
+
+                                                                        @if (!string.IsNullOrEmpty(shippingMethod.Description))
+                                                                        {
+                                                                            <div class="method-description" style="float: initial;">
+                                                                                @Html.Raw(shippingMethod.Description)
+
+                                                                            </div>
+                                                                        }
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+
+
+                                                        }
+
+                                                        if (shippingMethod.ShippingOption.Disable)
+                                                        {
+                                                            <div class="row nndelivery">
+                                                                <div class="col-lg-5"></div>
+                                                                <div class="col-lg-5">
+                                                                    <div class="form-group">
+
+                                                                        <div class="method-name">
+                                                                            <input class="shipping-method-radio-nn" id="shippingoptionDelivery_@(cont)" type="radio" name="shippingoption" value="@(shippingMethod.Name)___@(shippingMethod.ShippingRateComputationMethodSystemName)___@(shippingMethod.address)" disabled="disabled" />
+                                                                            <label class="shipping-method-label nndeliveryLabel" style="margin-left:0px;color: gray !important;" for="shippingoptionDelivery_@(cont)">@shippingMethod.address</label>
+
+                                                                            @if (!string.IsNullOrEmpty(shippingMethod.Description))
+                                                                            {
+                                                                                <div class="method-description" style="float: initial;">
+                                                                                    @Html.Raw(shippingMethod.Description)
+                                                                                </div>
+                                                                            }
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <script>
+                                                                //hide
+                                                                $('.shipping-method').hide();
+                                                                $('#send-request-div').hide();
+                                                                $('#shippingoption_PickupInStore').val("true");
+                                                                $('#PickupInStore').val("true");
+                                                                $('#shippingoption_PickupInStore').prop("checked", true);
+                                                                $('#PickupInStore').attr("value", "true");
+                                                            </script>
+                                                        }
+                                                    }
+
+                                                </div>
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+
+
+
+                            @if (Model.NotifyCustomerAboutShippingFromMultipleLocations)
+                            {
+                                <div class="multiple-locations">
+                                    @T("Checkout.ShippingMethod.ShippingFromMultipleLocations")
+                                </div>
+                            }
+
+                            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OpCheckoutShippingMethodBottom })
+                        </div>
+                    </div>
+
+                    <style>
+                        @@media (max-width: 800px) {
+                            .select-store-pick-up {
+                                width: 100%;
+                                height: 40px;
+                                padding: 10px;
+                                background-color: transparent;
+                                border: 1px solid #000;
+                            }
+                        }
+                    </style>
+                    <script>
+                        $("#opc-shipping .accordionCheckout").addClass("blackColor");
+                        $('#shippingoption_PickupInStore').prop("checked", true);
+                        $('#shippingoption_PickupInStore').prop("value", true);
+                        $('#PickupInStore').val("true");
+
+                        $('#shippingoption_ShippingService').prop("checked", false);
+                        $('#shippingoption_0').prop("checked", false);
+                        $('#shippingoption_UPS').prop("checked", false);
+                        $('.shipping-method').hide();
+                        $('#send-request-div').hide();
+
+                        $('.nndelivery input[type=radio]').each(function () {
+                            if (document.getElementById($(this).attr('id')).checked) {
+                                $('#shippingoption_ShippingService').prop("checked", true);
+                                $('#shippingoption_PickupInStore').prop("checked", false);
+                                $('#ShippingRateComputationMethodSystemName-div').hide();
+                                $('.shipping-method').show();
+                                $('#send-request-div').show();
+                                $('#pickup-points-form').hide();
+                                $('#PickupInStore').val("false");
+
+                                $('#shippingoption_Delivery').prop("checked", true);
+                                $('.shipping-method-radio-nn #shippingoption').prop("checked", true);
+                            }
+                        });
+
+                        if (document.getElementById('shippingoption_ShippingService').checked) {
+                            $('#shippingoption_UPS').prop("checked", false);
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#shippingoption_PickupInStore').prop("value", false);
+                            $('#PickupInStore').val("false");
+
+                           
+                            $(".content_pickupPersonNote").css("display", "none")
+                        }
+
+                        var upsShippingOption = document.getElementById('shippingoption_UPS');
+
+                        if (upsShippingOption && upsShippingOption.checked) {
+
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#shippingoption_PickupInStore').prop("value", false);
+                            $('#shippingoption_ShippingService').prop("checked", true);
+                            $('#shippingoption_UPS').prop("checked", true);
+                            $('#shippingoption_0').prop("checked", true);
+                            $('#PickupInStore').val("false");
+
+                        }
+
+                        var nndeliveryShippingOption = document.getElementById('shippingoption_Delivery');
+
+                        if (nndeliveryShippingOption && nndeliveryShippingOption.checked) {
+
+                            $('#shippingoption_PickupInStore').prop("checked", false);
+                            $('#shippingoption_PickupInStore').prop("value", false);
+                            $('#shippingoption_ShippingService').prop("checked", true);
+                            $('#shippingoption_UPS').prop("checked", false);
+                            $('#shippingoption_Delivery').prop("checked", true);
+
+                            $('.shipping-method-radio-nn #shippingoption').prop("checked", true);
+                            $('#PickupInStore').val("false");
+
+                        }
+
+                        $('#ContinueCheckoutButton').on('click',
+                            function (e) {
+
+                                ContinueCheckout();
+                            });
+
+                        $(document).ready(function () {
+                            $("#ContinueCheckoutButton").click(function () {
+                                alert("Handler for .click() called.");
+                            });
+                        });
+
+                        $("#ContinueCheckoutButton").click(function () {
+                            alert("Handler vbvvvfor .click() called.");
+                        });
+
+                        var deliveryRadioButton = document.querySelector('input[name="shippingoption_Delivery"]');
+
+                        var deliveryAddressRadioButton = document.getElementById('shippingoptionDelivery_8');
+                        var upsAddressRadioButton = document.getElementsByName('shippingoption');
+
+                        deliveryRadioButton.addEventListener('change', function () {
+                            if (deliveryRadioButton.checked) {
+                                // Marcar el radio button de la dirección de entrega
+                                deliveryAddressRadioButton.checked = true;
+                                upsAddressRadioButton.checked = false;
+                            }
+                        });
+                    </script>

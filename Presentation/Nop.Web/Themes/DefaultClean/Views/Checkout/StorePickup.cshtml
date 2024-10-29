@@ -1,0 +1,97 @@
+﻿@model StorePickupModel
+@using System.Text
+
+@if (Model.AllowPickupInStore && Model.PickupPoints.Any())
+{
+    <div class="row">
+        <div class="col-lg-4"></div>
+        <div class="col-lg-8">
+            <div class="form-group">
+            
+                <label class="containerRadio shipping-options">
+                    <input asp-for="PickupInStore" id="shippingoption_PickupInStore" /> @*onclick="Shipping.togglePickupInStore(this);"*@
+                    <label style="font-weight:normal" asp-for="PickupInStore">@T("Checkout.PickupPoints")</label>
+                    <span class="checkmark payment-method-radio"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.AllowPickupInStore)
+{
+    <div class="section pickup-points" id="pickup-points-form">
+        @if (Model.PickupPoints.Any())
+        {
+            if (Model.PickupInStoreOnly)
+            {
+                <input type="hidden" asp-for="PickupInStore" />
+            }
+            <div class="select-pickup-points">
+                @if (Model.PickupPoints.Count == 1)
+                {
+                    var point = Model.PickupPoints.First();
+                    <input name="pickup-points-id" id="pickup-points-id" type="hidden" value="@($"{point.Id}___{point.ProviderSystemName}")" />
+                    <div class="single-pickup-point">
+                        <ul>
+                            <li class="single-pickup-point name">@point.Name</li>
+                            <li class="single-pickup-point address">@($"{point.Address} {point.City} {point.County} {point.StateName} {point.CountryName}")</li>
+                            @if (!string.IsNullOrEmpty(point.PickupFee))
+                            {
+                                <li class="single-pickup-point fee">@point.PickupFee</li>
+                            }
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <label for="pickup-points-select">@T("Checkout.PickupPoints.SelectPickupPoint")</label>
+                    <select name="pickup-points-id" id="pickup-points-select" class="address-select" title="">
+                        @foreach (var point in Model.PickupPoints)
+                        {
+                            var addressLine = new StringBuilder();
+                            addressLine.Append(point.Name);
+                            if (!string.IsNullOrEmpty(point.Address))
+                            {
+                                addressLine.AppendFormat(", {0}", point.Address);
+                            }
+                            if (!string.IsNullOrEmpty(point.City))
+                            {
+                                addressLine.AppendFormat(", {0}", point.City);
+                            }
+                            if (!string.IsNullOrEmpty(point.County))
+                            {
+                                addressLine.AppendFormat(", {0}", point.County);
+                            }
+                            if (!string.IsNullOrEmpty(point.StateName))
+                            {
+                                addressLine.AppendFormat(", {0}", point.StateName);
+                            }
+                            if (!string.IsNullOrEmpty(point.CountryName))
+                            {
+                                addressLine.AppendFormat(", {0}", point.CountryName);
+                            }
+                            if (!string.IsNullOrEmpty(point.PickupFee))
+                            {
+                                addressLine.AppendFormat(", {0}", point.PickupFee);
+                            }
+                            <option value="@($"{point.Id}___{point.ProviderSystemName}")">@(addressLine)</option>
+                        }
+                    </select>
+                }
+            </div>
+          
+        }
+        <div class="message-error">
+            <ul>
+                @foreach (var warning in Model.Warnings)
+                {
+                    <li>@warning</li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+
+

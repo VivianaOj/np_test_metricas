@@ -1,0 +1,182 @@
+﻿@model IList<ProductOverviewModel>
+@if (Model.Count > 0)
+{
+    var listProductos = Model.Take(5).ToList();
+    @*<div class="product-grid home-page-product-grid categoryHome">
+            <div class="title">
+                <strong>@T("Homepage.Products")</strong>
+            </div>
+            <div class="item-grid">
+                @foreach (var item in Model.Take(5))
+                {
+                    <div class="item-box">
+                        @await Html.PartialAsync("_ProductHomeBox", item)
+                    </div>
+                }
+            </div>
+        </div>*@
+
+    <div class="row d-flex justify-content-center mt-5" id="rowproductshomepage">
+        <div class="col-sm-11 col-md-11 col-lg-11 mt-5" id="zonerowproductshomepage">
+            <div class="product-grid categoryHome">
+                <div class="row mt-3 mb-5">
+                    <div class="col-sm-12 col-md-12 col-lg-12">
+                        <div class="form-inline">
+                            <div class="col-10 col-sm-2 col-md-2 col-lg-3 wop">
+                                <strong class="title-homepage-productos">@T("Homepage.Products")</strong>
+                            </div>
+                            <div style="height: 3px; background: #B0BEC5;" class="col-2 col-sm col-md col-lg">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5 col-lg-5" id="HomeProductFisrt">
+                        @if (listProductos.Count > 0)
+                        {
+                            listProductos[0].CustomProperties.Add("HeightImage", "height:38.1rem");
+                            @await Html.PartialAsync("_ProductHomeBox", listProductos[0]);
+                        }
+
+                    </div>
+                    <div class="col-md-7 col-lg-7">
+                        <div class="row d-flex justify-content-center mb-3">
+                            <div class="col-md-6 col-lg-6" id="HomeProductSecond">
+                                @if (listProductos.Count > 1)
+                                {
+                                    @await Html.PartialAsync("_ProductHomeBox", listProductos[1]);
+                                }
+
+                            </div>
+                            <div class="col-md-6 col-lg-6" id="HomeProductthird">
+                                @if (listProductos.Count > 2)
+                                {
+                                    @await Html.PartialAsync("_ProductHomeBox", listProductos[2]);
+                                }
+
+                            </div>
+
+                        </div>
+                        <div class="row d-flex justify-content-center mb-3">
+
+                            <div class="col-md-6 col-lg-6" id="HomeProductFourth">
+                                @if (listProductos.Count > 3)
+                                {
+                                    @await Html.PartialAsync("_ProductHomeBox", listProductos[3]);
+                                }
+
+
+                            </div>
+                            <div class="col-md-6 col-lg-6" id="HomeProductfifth">
+                                @if (listProductos.Count > 4)
+                                {
+                                    @await Html.PartialAsync("_ProductHomeBox", listProductos[4]);
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3 mb-5" id="productshomepageMobile" style="margin: 50px 0px 0px 0px !important;">
+        <div class="col-sm-12 col-md-12 col-lg-12">
+            <div class="form-inline">
+                <div class="col-10 col-sm-2 col-md-2 col-lg-3">
+                    <strong class="title-homepage-productos">Featured</strong>
+                </div>
+                <div style="height:3px;background:#b0bec5" class="col-2 col-sm col-md col-lg"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row d-flex justify-content-center" id="productshomepageMobile">
+        <div class="col-1 col-sm-1 col-md-1 col-lg-1 my-auto">
+            <a class="carousel-control-prev" href="#first-carousel-home" role="button" data-slide="prev" style="left:9%">
+                @*<span class="carousel-control-prev-icon" aria-hidden="true"></span>*@
+                <img src="~/Themes/DefaultClean/Content/images/chevron-left-solid.svg" style="cursor:pointer;width:150%" />
+                <span class="sr-only">Previous</span>
+            </a>
+        </div>
+        <div class="col-10 col-sm-9 col-md-9 col-lg-9 mt-5 wop">
+            <div id="first-carousel-home" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner row w-100 mx-auto p2" role="listbox">
+                    @for (int i = 0; i < 5; i++)
+                    {
+                        var item = Model[i];
+                        <div class="carousel-item col-12 col-sm-6 col-md-4 col-lg-3 pl-2 pr-2 @Html.Raw(i==0?"active":"")">
+                            @await Html.PartialAsync("_ProductFavoriteBoxv2", item)
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-1 col-sm-1 col-md-1 col-lg-1 my-auto">
+            <a class="carousel-control-next" href="#first-carousel-home" role="button" data-slide="next" style="left: 70%">
+                <img src="~/Themes/DefaultClean/Content/images/chevron-right-solid.svg" style="cursor: pointer; width: 150%" />
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+    <!--
+        <div class="row d-flex justify-content-center" id="productshomepageMobile" style="display: none !important;">
+            <div class="col-1 col-sm-1 col-md-1 col-lg-1 my-auto">
+                <a class="carousel-control-prev" href="#carousel-related-products" role="button" data-slide="prev" style="left:9%">
+                    @*<span class="carousel-control-prev-icon" aria-hidden="true"></span>*@
+                    <img src="~/Themes/DefaultClean/Content/images/chevron-left-solid.svg" style="cursor:pointer;width:150%" />
+                    <span class="sr-only">Previous</span>
+                </a>
+            </div>
+            <div class="col-10 col-sm-10 col-md-10 col-lg-10 mt-5">
+                <div id="carousel-related-products" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner row w-100 mx-auto p1" role="listbox">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            var item = Model[i];
+
+                            <div class="carousel-item col-12 col-sm-6 col-md-4 col-lg-3 pl-1 pr-2 @Html.Raw(i==0?"active":"")">
+                                @await Html.PartialAsync("_ProductBox", item)
+                            </div>
+                        }
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="col-1 col-sm-1 col-md-1 col-lg-1 my-auto">
+                <a class="carousel-control-next" href="#carousel-related-products" role="button" data-slide="next" style="left: 70%">
+                    <img src="~/Themes/DefaultClean/Content/images/chevron-right-solid.svg" style="cursor: pointer; width: 150%" />
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+    -->
+    <script>
+        $('#carousel-related-products').on('slide.bs.carousel', function (e) {
+            /*
+                CC 2.0 License Iatek LLC 2018 - Attribution required
+            */
+            var $e = $(e.relatedTarget);
+            var idx = $e.index();
+            var itemsPerSlide = 4;
+            var totalItems = $('.carousel-item').length;
+
+            if (idx >= totalItems - (itemsPerSlide - 1)) {
+                var it = itemsPerSlide - (totalItems - idx);
+                for (var i = 0; i < it; i++) {
+                    // append slides to end
+                    if (e.direction == "left") {
+                        $('.carousel-item').eq(i).appendTo('.carousel-inner', 1000);
+                    }
+                    else {
+                        $('.carousel-item').eq(0).appendTo('.carousel-inner', 1000);
+                    }
+                }
+            }
+        });
+
+    </script>
+
+   
+}

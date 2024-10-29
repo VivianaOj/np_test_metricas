@@ -1,0 +1,909 @@
+﻿@using Nop.Core.Domain.Orders
+@model InvoicePaymentModel
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Account").Text);
+
+    //page class
+    Html.AppendPageCssClassParts("html-account-page");
+    Html.AppendPageCssClassParts("html-order-list-page");
+}
+
+
+
+<style>
+    #rowCatalogsSelectorFilter {
+        display: none !important;
+    }
+
+    .SelectOrdersToPay {
+        border: 0px !important;
+    }
+
+        .selectorderstopay thead tr, .selectorderstopay thead tr th, .selectorderstopay thead tr td
+        .selectorderstopay tbody tr, .selectorderstopay tbody tr th, .selectorderstopay tbody tr td {
+            border: 0px !important;
+        }
+
+        .selectorderstopay > tbody > tr, .selectorderstopay > tbody > tr > th, .selectorderstopay > tbody > tr > td {
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+        }
+
+    .OrderDetailDiv, .DetailDivOrderMobile {
+        padding: 10px !important;
+        display: none;
+    }
+
+    .products-orderdetailmobile-selectorderstopay {
+        border: 0px !important;
+    }
+
+    .wop {
+        padding: 0px !important;
+    }
+
+    .container-btn {
+        display: block;
+        position: relative;
+        padding-left: 35px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 22px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+        .container-btn input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 25px;
+        width: 25px;
+        border-radius: 0px !important;
+        background-color: #eee;
+    }
+
+    /* On mouse-over, add a grey background color */
+    .container-btn:hover input ~ .checkmark {
+        background-color: #ccc;
+    }
+
+    /* When the checkbox is checked, add a blue background */
+    .container-btn input:checked ~ .checkmark {
+        background-color: #2196F3;
+    }
+
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the checkmark when checked */
+    .container-btn input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    /* Style the checkmark/indicator */
+    .container-btn .checkmark:after {
+        left: 9px;
+        top: 5px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+
+    input {
+        height: 36px;
+        border: 1px solid #ddd;
+        padding: 8px;
+        vertical-align: middle;
+    }
+
+
+    @@media (max-width: 800px) {
+        .selectorderstopay-version-mobile {
+            display: block;
+        }
+
+        .selectorderstopay-version-desktop {
+            display: none;
+        }
+
+        #selectalldivdesktop {
+            display: none;
+        }
+
+        .button-continue-checkuot {
+            margin: 10px 0px !important;
+        }
+    }
+</style>
+
+<div class="row d-flex justify-content-center">
+    <div class="col-sm-11 col-md-11 col-lg-11 mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="page-title page-title-selectorderstopay-mobile page-title-selectorderstopay-desktop">
+                    <h1>@T("Order.InvoiceListToPay")</h1>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center input-orderdetailmobile-selectorderstopay selectalldesktop">
+            <div class="col-lg-5"></div>
+            <div class="col-lg-2">
+                <div class="page-title" style="border: 0px !important; width:150px !important;">
+                    <div id="selectalldivdesktop" style="cursor: pointer; position: relative; bottom: 10px; left: 30px;" onclick="checkAllDestop(); return false;" class="text-info">Select All</div>
+                    <div id="unselectalldivdesktop" style="display:none; cursor: pointer; position: relative; bottom: 10px; left: 30px;" onclick="unCheckAllDesktop(); return false;" class="text-info">Unselect All</div>
+                </div>
+            </div>
+            <div class="col-lg-5"></div>
+        </div>
+        <div class="row justify-content-center selectallmobile">
+            <div id="selectalldivmobile" style="cursor: pointer; position: relative; text-align: center;" onclick="checkAllMobile(); return false;" class="text-info">Select All</div>
+            <div id="unselectalldivmobile" style="display: none; cursor: pointer; position: relative; text-align: center;" onclick="unCheckAllMobile(); return false;" class="text-info">Unselect All</div>
+        </div>
+        <div class="row justify-content-center selectorderstopay-version-desktop">
+            <div class="col-lg-12">
+                <table class="table selectorderstopay">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            @* <th scope="col">Created Date</th>>*@
+                            <th scope="col">Invoice #</th>
+                            <th scope="col">Company</th>
+
+                            <th scope="col">Orig. Amt.</th>
+                            <th scope="col">Amt. Due</th>
+                            <th scope="col">Payment Amount</th>
+                            @*<th scope="col">Payment Amt.</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.OrderDetailsModel)
+                        {
+                            var amountPending = order.OrderTotalPayList - order.AmountDue;
+                            var TotalPayPending = order.OrderTotalPayList;
+                            <tr>
+                                <th scope="row">
+                                    <input class="text-Lato checkboxdesktop" type="checkbox" id="order_@order.Id" name="order_@order.Id" />
+                                </th>
+                                @*<td>@order.CreatedOn</td>*@
+                                <td class="text-Lato">#@order.InvoiceNumber</td>
+                                <td>@order.company</td>
+                                <td class="text-Lato">$@order.OrderTotalPayList.ToString("N2")</td>
+                                @if (order.AmountDue == 0)
+                                {
+
+                                    <td><span class="text-danger text-Lato">$@amountPending.ToString("N2")</span></td>
+
+                                }
+                                else
+                                {
+                                    TotalPayPending = order.AmountDue;
+                                    <td><span class="text-danger text-Lato">$@order.AmountDue.ToString("N2")</span></td>
+                                }
+
+
+
+                                <td>
+                                    <input id="invoicePartialPayment_@order.Id" name="invoicePartialPayment_@order.Id" type="hidden" value="@TotalPayPending" />
+                                    @if (order.AmountDue == 0)
+                                    {
+                                        <input id="invoiceTotal_@order.Id" name="invoiceTotal_@order.Id" type="hidden" value="@order.OrderTotalPayList" />
+                                    }
+                                    else
+                                    {
+                                        <input id="invoiceTotal_@order.Id" name="invoiceTotal_@order.Id" type="hidden" value="@order.AmountDue" />
+                                    }
+
+
+                                    <input class="only-number text-Lato" type="text" value="" id="TotalPay_@order.Id" name="TotalPay_@order.Id" onkeyup="ChangeTotalPayByItem(@order.Id); setNumberZero(value, 'TotalPay_@order.Id'); return false;" style="font-size: 16px;"/>
+                                    <!--<input autocomplete="off" data-val="true" data-val-required="0" id="CardholderName" maxlength="50" name="CardholderName" onkeyup="validateCardNameKey()" style="Width: 100%;" type="text" value="">-->
+                                </td>
+                            </tr>
+                            <tr>
+                                <td scope="row"></td>
+                                <td>
+                                    @if (order.OrderItems != null)
+                                    {
+                                        @if (order.OrderItems.Count > 0)
+                                        {
+                                            <a class="text-info" style="cursor: pointer;" onclick="showDetailDiv('DetailDivOrder_@order.Id'); return false;">View details</a>
+                                        }
+                                    }
+                                </td>
+                                <td colspan="6"><hr /></td>
+                            </tr>
+
+                            @if (order.OrderItems != null)
+                            {
+                                <tr id="DetailDivOrder_@order.Id" class="OrderDetailDiv">
+                                    <th></th>
+                                    <td colspan="7">
+                                        <div class="row">
+                                            @{
+                                                decimal subTotalWT = 0;
+                                                decimal subTotalWOT = 0;
+                                            }
+                                            <div class="col-lg-1"></div>
+                                            <div class="col-lg-9 wop">
+                                                <table class="table orderdetailtable">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">Product(s)</th>
+                                                            <th scope="col">Quantity</th>
+                                                            <th scope="col">Rate</th>
+                                                            <th scope="col">Total</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (order.OrderItems != null)
+                                                        {
+                                                            @foreach (var orderItem in order.OrderItems)
+                                                            {
+                                                                var productTotalWT = orderItem.Quantity * orderItem.UnitPriceInclTax;
+                                                                subTotalWT += productTotalWT;
+                                                                var productTotalWOT = orderItem.Quantity * orderItem.UnitPriceExclTax;
+                                                                subTotalWOT += productTotalWOT;
+                                                                <tr>
+                                                                    <td>@orderItem.Product.Name</td>
+                                                                    <td class="text-Lato">@orderItem.Quantity</td>
+                                                                    <td class="text-Lato">@orderItem.UnitPriceInclTax.ToString("N2")</td>
+                                                                    <td class="text-Lato">$@orderItem.PriceExclTax.ToString("N2")</td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                        </tbody>
+                                                </table>
+                                            </div>
+                                            @{
+                                                decimal taxes = subTotalWT - subTotalWOT;
+                                                decimal total = subTotalWT;
+                                            }
+                                            <div class="col-lg-2 wop">
+                                                <div class="row wop" style="margin-top: 15px;">
+                                                    <div class="col-lg-12 wop text-Lato">
+                                                        <b>Subtotal:</b> $@subTotalWOT.ToString("0. ##")
+                                                    </div>
+                                                    <div class="col-lg-12 wop text-Lato">
+                                                        <b>Taxes:</b> $@taxes.ToString("0. ##")
+                                                    </div>
+                                                    <div class="col-lg-12 wop text-Lato">
+                                                        <b>Shipping:</b> $@order.OrderShippingInclTax.ToString("0. ##")
+                                                    </div>
+                                                    <div class="col-lg-12 wop text-Lato">
+                                                        <b>Total:</b> $@order.OrderTotalPayList.ToString("0. ##")
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                                }
+                                                }
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row justify-content-center selectorderstopay-version-mobile">
+            @foreach (var order in Model.OrderDetailsModel)
+            {
+                var amountPending = order.OrderTotalPayList - order.AmountDue;
+                var TotalPayPending = order.OrderTotalPayList;
+                <div class="col-12">
+                    <div class="row wop orderdetailmobile-selectorderstopay">
+                        <div class="col-12 wop" style="text-align: center !important; padding: 10px 0px !important;">
+                            <center>
+                                <input class="checkboxmobile" type="checkbox" id="order_mobile_@order.Id" name="order_mobile_@order.Id" />
+                                <span style="margin-left: 10px;"><b class="text-Lato">@order.InvoiceNumber</b></span>
+                                <span style="margin: 0px 10px;">@order.company</span>
+                            </center>
+                        </div>
+                        <div class="col-12 wop">
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+
+                                </div>
+                                <div class="col-4 wop">
+
+                                </div>
+                                <div class="col-4 wop">
+
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    <b>Orig. Amt.: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>Amt. Due: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>Payment Amt.</b>
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+
+                                </div>
+                                <div class="col-4 wop">
+
+                                </div>
+                                <div class="col-4 wop">
+
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    $@order.OrderTotalPayList.ToString("N2")
+                                </div>
+                                <div class="col-4 wop">
+                                    @if (order.AmountDue == 0)
+                                    {
+
+                                        <td><span class="text-danger text-Lato">$@amountPending.ToString("N2")</span></td>
+
+                                    }
+                                    else
+                                    {
+                                        TotalPayPending = order.AmountDue;
+                                        <td><span class="text-danger text-Lato">$@order.AmountDue.ToString("N2")</span></td>
+                                    }
+                                </div>
+                                <div class="col-4 wop text-danger">
+                                    <input id="invoicePartialPayment_@order.Id" name="invoicePartialPayment_@order.Id" type="hidden" value="@TotalPayPending.ToString("N2")" />
+                                    @if (order.AmountDue == 0)
+                                    {
+                                        <input id="invoiceTotal_@order.Id" name="invoiceTotal_@order.Id" type="hidden" value="@order.OrderTotalPayList" />
+                                    }
+                                    else
+                                    {
+                                        <input id="invoiceTotal_@order.Id" name="invoiceTotal_@order.Id" type="hidden" value="@order.AmountDue" />
+                                    }
+                                    <input class="only-number" type="text" value="" id="TotalPay_@order.Id" name="TotalPay_@order.Id" onkeyup="ChangeTotalPayByItem(@order.Id); setNumberZero(value, 'TotalPay_@order.Id'); return false;" style="width: 60% !important;height: 25px !important;text-align: center !important;"/>
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-12 wop">
+                                    
+                                </div>
+                                <div class="col-12 wop">
+                                    
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important; padding: 10px 0px !important;">
+                                <div class="col-12 wop">
+                                    @if (order.OrderItems != null)
+                                    {
+                                        @if (order.OrderItems.Count > 0)
+                                        {
+                                            <span class="text-info" style="cursor: pointer;" onclick="showDetailDiv('DetailDivOrderMobile_@order.Id'); return false;">View details</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                            <div class="DetailDivOrderMobile" id="DetailDivOrderMobile_@order.Id">
+                                @{
+                                    decimal subTotalWTMobile = 0;
+                                    decimal subTotalWOTMobile = 0;
+                                }
+                                <div class="row wop products-orderdetailmobile-selectorderstopay">
+                                    <div class="col-8 wop">
+                                        <b>Product -  Quantity</b>
+                                    </div>
+                                    <div class="col-1 wop">
+                                        <b>Qty.</b>
+                                    </div>
+                                    <div class="col-1 wop">
+                                        <b>Rate</b>
+                                    </div>
+                                    <div class="col-2 wop">
+                                        <b>Total</b>
+                                    </div>
+                                    @if (order.OrderItems != null)
+                                    {
+                                        @foreach (var orderItem in order.OrderItems)
+                                        {
+                                            var productTotalWTMobile = orderItem.Quantity * orderItem.UnitPriceInclTax;
+                                            subTotalWTMobile += productTotalWTMobile;
+                                            var productTotalWOTMobile = orderItem.Quantity * orderItem.UnitPriceExclTax;
+                                            subTotalWOTMobile += productTotalWOTMobile;
+
+                                            <div class="col-8 wop textal-orderdetailmobile-selectorderstopay">
+                                                @orderItem.Product.Name
+                                            </div>
+                                            <div class="col-1 wop text-Lato">
+                                                @orderItem.Quantity
+                                            </div>
+                                            <div class="col-1 wop text-Lato">
+                                                @orderItem.UnitPriceInclTax.ToString("N2")
+                                            </div>
+                                            <div class="col-2 wop text-Lato">
+                                                $@orderItem.PriceExclTax.ToString("N2")
+                                            </div>
+                                        }
+                                    }
+                                    @{
+                                        decimal taxesMobile = subTotalWTMobile - subTotalWOTMobile;
+                                        decimal totalMobile = subTotalWTMobile;
+                                    }
+                                    <div class="col-12 wop" style="margin-top: 10px;">
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Subtotal:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay text-Lato">
+                                                $@subTotalWOTMobile.ToString("N2")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Taxes:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay text-Lato">
+                                                $@taxesMobile.ToString("N2")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Shipping:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay text-Lato">
+                                                $@order.OrderShippingInclTax.ToString("N2")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Total:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay text-Lato">
+                                                $@order.OrderTotal
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr style="border-top: 3px solid #eee !important;"/>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <div class="row">
+            @*<div class="col-12 col-lg-12 text-total-payment-selectorderstopay">
+                    Total Payment Amount <span id="total-payment-amount">$0.00</span><br/>
+                </div>
+                <div class="col-12 col-lg-12 text-total-payment-selectorderstopay" ">
+                    Total To Pay <span id="total-discount-amount" style="color:red;">$0.00</span>
+                </div>
+            *@
+
+            <div class="col-12 col-lg-12 text-total-payment-selectorderstopay" ">
+                Total To Pay <span id="total-payment-amount" style="color:red;" class="text-Lato">$0.00</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+@using (Html.BeginForm("InvoiceListToPayStepPay", "Order", FormMethod.Post, new { id = "InvoiceListForm", name = "InvoiceListForm", style = "width: 100%" }))
+{
+
+
+    <input id="orderByPay" name="orderByPay" type="hidden" />
+    <input id="partialPayment" name="partialPayment" type="hidden" />
+    <input id="objectJson" name="objectJson" type="hidden" />
+    <div class="row">
+        <div class="col-12 col-lg-3">
+
+        </div>
+        <div class="col-12 col-lg-6" style="margin: 30px 0px;">
+            <center>
+                <a href="/order/Invoice" class="btn btn-outline-danger btn-finish-total-payment-selectorderstopay" style="width: 250px !important;">Back</a>
+                <button type="submit" class="button-1 button-continue-checkuot">Continue</button>
+            </center>
+        </div>
+        <div class="col-12 col-lg-3">
+
+        </div>
+    </div>
+}
+<script>
+
+    $('#customerCompany').prop('disabled', 'disabled');
+    $(".button-continue-checkuot").prop("disabled", true);
+
+    var totalGeneral = 0;
+    var allHasValue = 0;
+    var total = 0;
+    let orderlist = [];
+
+    $(document).ready(function () {
+
+        $("#objectJson").val("");
+        $(".btn-invoice-desktop-continue").css("display", "none");
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                var totalPay = document.getElementById("TotalPay_" + @order.Id);
+                totalPay.disabled = true;
+            </text>
+        }
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+            $("#TotalPay_" + @order.Id).val(Number.parseFloat(0).toFixed(2));
+
+            $('#order_@order.Id').on('change', function(event) {
+                if ($('#order_@order.Id').prop('checked')) {
+                    if (@order.AmountDue> 0) {
+                        total += @order.AmountDue;
+                    } else {
+                        total += @order.OrderTotalPayList;
+                    }
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    totalGeneral = Number.parseFloat(total).toFixed(2);
+                    orderlist.push("@order.Id");
+                    $('#orderByPay').val(orderlist);
+                    var totalPay = document.getElementById("TotalPay_" + @order.Id);
+                    totalPay.disabled = false;
+                    $('#TotalPay_@order.Id').val($('#invoiceTotal_@order.Id').val());
+                    ChangeTotalPayByItem(@order.Id);
+                }
+                else {
+                    total -= @order.OrderTotalPayList;
+                    if (total < 1) {
+                        total = 0;
+                    }
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    totalGeneral = Number.parseFloat(total).toFixed(2);
+                    orderlist = orderlist.filter((item) => item !== '@order.Id');
+                    $('#orderByPay').val(orderlist);
+                    var totalPay = document.getElementById("TotalPay_" + @order.Id);
+                    totalPay.disabled = true;
+                    $("#TotalPay_" + @order.Id).val(Number.parseFloat(0).toFixed(2));
+                    ChangeTotalPayByItem(@order.Id);
+                }
+                activateBtnContinue();
+            })
+            </text>
+        }
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+            $('#order_mobile_@order.Id').on('change', function(event) {
+                if ($('#order_mobile_@order.Id').prop('checked')) {
+                    total += @order.OrderTotalPayList;
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    totalGeneral = Number.parseFloat(total).toFixed(2);
+                    orderlist.push("@order.Id");
+                    $('#orderByPay').val(orderlist);
+                    var totalPay = document.getElementById("TotalPay_" + @order.Id);
+                    totalPay.disabled = false;
+                    $('#TotalPay_@order.Id').val($('#invoiceTotal_@order.Id').val());
+                    ChangeTotalPayByItem(@order.Id);
+                }
+                else {
+                    total -= @order.OrderTotalPayList;
+                    if (total < 1) {
+                        total = 0;
+                    }
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    totalGeneral = Number.parseFloat(total).toFixed(2);
+                    orderlist = orderlist.filter((item) => item !== '@order.Id');
+                    $('#orderByPay').val(orderlist);
+                    var totalPay = document.getElementById("TotalPay_" + @order.Id);
+                    totalPay.disabled = true;
+                    $("#TotalPay_" + @order.Id).val(Number.parseFloat(0).toFixed(2));
+                    ChangeTotalPayByItem(@order.Id);
+                }
+                activateBtnContinue();
+            })
+            </text>
+        }
+
+        //totalGeneral = total;
+
+    })
+
+    function ChangeTotalPayByItem(orderId) {
+
+        const input = event.target;
+        const regex = /^[0-9]*\.?[0-9]*$/; // Expresión regular para permitir solo números y decimales
+        if (!regex.test(input.value)) {
+            input.value = input.value.replace(/[^0-9.]/g, ''); // Elimina caracteres no válidos
+        }
+
+        var totalDiscount = 0;
+        $("#invoicePartialPayment_" + orderId).val(0);
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                totalDiscount = (parseFloat(totalDiscount) + parseFloat($("#TotalPay_" + @order.Id).val()));
+            </text>
+        }
+
+        $('#total-discount-amount').text("$" + Number.parseFloat(totalDiscount).toFixed(2));
+        var valueOriginal = parseFloat($("#invoiceTotal_" + orderId).val());
+
+
+        var valueInput = parseFloat($("#TotalPay_" + orderId).val());
+        $("#invoicePartialPayment_" + orderId).val(valueInput);
+
+        if (valueInput == 0) {
+            var valueInputTotal = $("#invoiceTotal_" + orderId).val();
+            $("#invoicePartialPayment_" + orderId).val(valueInputTotal);
+        }
+
+
+        if (valueInput > valueOriginal) {
+            $("#TotalPay_" + orderId).val(parseFloat(valueInput - (valueInput - valueOriginal)).toFixed(2));
+            ChangeTotalPayByItem();
+        } else {
+
+        }
+
+        $('#partialPayment').val(totalDiscount);
+
+        var orders = $('#orderByPay').val();
+        var json = '{"invoicesToPay": [';
+        var theArray = orders.split(",");
+
+        for (i = 0; i < theArray.length; i++) {
+            json = json + '{"OrderId": "' + theArray[i] + '","ValuePay": "' + $("#invoicePartialPayment_" + theArray[i]).val() + '"},';
+
+            if ($("#TotalPay_" + theArray[i]).val() > 0) {
+                allHasValue = 1;
+            } else {
+                allHasValue = 0;
+            }
+        }
+
+        json = json + ']}';
+
+        if (allHasValue == 0) {
+            $(".btn-invoice-desktop-continue").css("display", "none");
+        }
+
+        activateBtnContinue();
+
+        $("#objectJson").val(json);
+        //$('#orderByPay').val(json);
+
+        if ($("#orderByPay").val() == "") {
+            $(".button-continue-checkuot").prop("disabled", true);
+        } else {
+            $(".button-continue-checkuot").prop("disabled", false);
+        }
+
+        var formattedValue = parseFloat(totalDiscount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        document.getElementById("total-payment-amount").innerHTML ="$"+formattedValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+
+      
+    }
+
+    function showDetailDiv(div) {
+        $("#" + div).toggle("slow");
+    }
+
+    function showDetailDivMobile(div) {
+        $("#" + div).toggle("slow");
+    }
+
+    function checkAllDestop() {
+        var total = 0;
+        orderlist = [];
+
+        //document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+        //    checkElement.checked = true;
+        //});
+
+        var inputs = document.querySelectorAll('.checkboxdesktop');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].checked = true;
+        }
+
+        $("#selectalldivdesktop").toggle();
+        $("#unselectalldivdesktop").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+
+            <text>
+
+               // total += @order.OrderTotalPayList;
+                var amountPending =@order.AmountDue;
+                 total += amountPending;
+                $('input[name=order_@order.Id]').prop('disabled', true);
+
+
+                $('#TotalPay_@order.Id').val($('#invoiceTotal_@order.Id').val());
+                orderlist.push("@order.Id");
+
+                var valueInput = parseFloat($("#TotalPay_" + @order.Id).val());
+                $("#invoicePartialPayment_" + @order.Id).val(valueInput);
+
+            </text>
+
+
+        }
+
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        totalGeneral = Number.parseFloat(total).toFixed(2);
+        $('#orderByPay').val(orderlist);
+        ChangeTotalPayByItem();
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $(".button-continue-checkuot").prop("disabled", false);
+
+    }
+
+    function unCheckAllDesktop() {
+        var total = 0;
+         orderlist = [];
+
+        $("#objectJson").val();
+        //document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+        //    checkElement.checked = false;
+        //});
+
+        $("#selectalldivdesktop").toggle();
+        $("#unselectalldivdesktop").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                $('input[name=order_@order.Id]').prop('disabled', false);
+                $('#TotalPay_@order.Id').val(0.00);
+                //$("#invoicePartialPayment_" + @order.Id).val(0.00);
+            </text>
+        }
+        $('#orderByPay').val("");
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        totalGeneral = Number.parseFloat(total).toFixed(2);
+        $('#orderByPay').val(orderlist);
+
+        ChangeTotalPayByItem();
+
+        var inputs = document.querySelectorAll('.checkboxdesktop');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].checked = false;
+        }
+    }
+
+    function checkAllMobile() {
+        var total = 0;
+        let orderlist = [];
+
+        document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+            checkElement.checked = true;
+        });
+
+        $("#selectalldivmobile").toggle();
+        $("#unselectalldivmobile").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                //total += @order.OrderTotalPayList;
+                var amountPending =@order.AmountDue;
+                 total += amountPending;
+                $('input[name=order_mobile_@order.Id]').prop('disabled', true);
+                $('#TotalPay_@order.Id').val($('#invoiceTotal_@order.Id').val());
+                orderlist.push("@order.Id");
+
+            </text>
+        }
+
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        totalGeneral = Number.parseFloat(total).toFixed(2);
+        $('#orderByPay').val(orderlist);
+        ChangeTotalPayByItem();
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $(".button-continue-checkuot").prop("disabled", false);
+
+    }
+
+    function unCheckAllMobile() {
+        var total = 0;
+        orderlist = [];
+
+        var inputs = document.querySelectorAll('.checkboxmobile');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].checked = false;
+        }
+        //document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+        //    checkElement.checked = false;
+        //});
+
+        $("#selectalldivmobile").toggle();
+        $("#unselectalldivmobile").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                $('input[name=order_mobile_@order.Id]').prop('disabled', false);
+                $('#TotalPay_@order.Id').val(0.00);
+            </text>
+        }
+
+        $('#total-payment-amount').text("$" + Number.parseFloat(0).toFixed(2));
+        totalGeneral = Number.parseFloat(total).toFixed(2);
+        $('#orderByPay').val(orderlist);
+        ChangeTotalPayByItem();
+    }
+
+    function activateBtnContinue() {
+        if (totalGeneral > 0 && allHasValue == 1) {
+            $(".btn-invoice-desktop-continue").css("display", "inline");
+        } else {
+            $(".btn-invoice-desktop-continue").css("display", "none");
+        }
+    }
+
+    if ($(window).width() < 800) {
+        $(".selectorderstopay-version-desktop").remove();
+    }
+
+    $('.only-number').on('input', function () {
+        //this.value = this.value.replace(/[^0-9.]/g, '');
+    });
+
+    function setNumberZero(value, id) {
+        /*
+        if (value == "") {
+            $("#" + id).val(Number.parseFloat(0).toFixed(2));
+        }
+        */
+    }
+</script>
+
+<style>
+    .btn-finish-total-payment-selectorderstopay {
+        font-size: 14px;
+        padding-top: 7px !important;
+    }
+
+    .button-continue-checkuot {
+        font-size: 14px !important;
+        text-transform: capitalize;
+        width: 260.53px !important;
+        background: #37AEF3 !important;
+        border: 1.18421px solid #FFFFFF !important;
+        box-sizing: border-box !important;
+        border-radius: 4.73684px !important;
+        color: #FFFFFF !important;
+        padding: 9.47368px 18.9474px !important;
+    }
+</style>
+
+

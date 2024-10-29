@@ -1,0 +1,174 @@
+﻿@model CategoryNavigationModel.CategoryLineModel
+
+@functions{
+    public bool BreadCrumbContainsCurrentCategoryId(CategorySimpleModel category)
+    {
+        if (Model.CurrentCategoryId == 0)
+            return false;
+
+        if (category.Id == Model.CurrentCategoryId)
+            return true;
+
+        foreach (var subCategory in category.SubCategories)
+        {
+            if (BreadCrumbContainsCurrentCategoryId(subCategory))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+@{
+    var active = Model.Category.Id == Model.CurrentCategoryId || Model.Category.SubCategories.Count(BreadCrumbContainsCurrentCategoryId) > 0;
+    var last = Model.Category.Id == Model.CurrentCategoryId;
+    var liClass = active ? "active" : "inactive";
+    if (last)
+    {
+        liClass += " last";
+    }
+}
+
+@{
+    //if (Model.Category.Id == Model.CurrentCategoryId ||
+    //    Model.Category.SubCategories.Count(BreadCrumbContainsCurrentCategoryId) > 0)
+    //{
+    if (Model.Category.SubCategories.Count > 0)
+    {
+        @foreach (var subCategory in Model.Category.SubCategories)
+        {
+            var categoryLineModel = new CategoryNavigationModel.CategoryLineModel
+            {
+                CurrentCategoryId = Model.CurrentCategoryId,
+                Category = subCategory
+            };
+
+
+
+            @if (subCategory.HaveSubCategories)
+            {
+                <div id="@Html.Raw($"divAccordeonSub_{subCategory.Id}")">
+                    <div class="card" style="border-radius:0px !important">
+                        <div class="card-header colorGeneralBackgroundGray2 colorGeneralColorGray3 pb-1 pt-1" id="headingOne" style="border-radius:0px !important">
+                            <div class="row justify-content-end">
+                                <div class="wop col-1 col-md-2 d-flex submenu-version-mobile">
+                                    <i class="fa fa-plus my-auto mr-2 cursorPointer collapsed" style="font-size:16px" data-toggle="collapse" data-target="#@Html.Raw($"collapse_cat_{subCategory.Id}")" aria-expanded="true" aria-controls="@Html.Raw($"collapse_cat_{subCategory.Id}")"></i>
+                                    <i class="fa fa-minus my-auto mr-2 cursorPointer d-none" style="font-size:16px" data-toggle="collapse" data-target="#@Html.Raw($"collapse_cat_{subCategory.Id}")" aria-expanded="true" aria-controls="@Html.Raw($"collapse_cat_{subCategory.Id}")"></i>
+                                </div>
+                                <div class="wop col-11 col-md-9">
+                                    <h5 class="mb-0 btn-link cursorPointer" onclick="window.location.href = '@Url.RouteUrl("Category", new { SeName = subCategory.SeName })'" style="font-size: 0.909rem !important;">
+                                        @subCategory.Name
+                                        @if (subCategory.NumberOfProducts.HasValue)
+                                        {
+                                            <text> </text>@T("Categories.TotalProducts", subCategory.NumberOfProducts.Value)
+                                        }
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="@Html.Raw($"collapse_cat_{subCategory.Id}")" class="collapse " aria-labelledby="headingOne">
+                            <div class="card-body padding-custom">
+
+                                @{
+                                    var categorySubLineModel = new CategoryNavigationModel.CategoryLineModel
+                                    {
+                                        CurrentCategoryId = Model.CurrentCategoryId,
+                                        Category = subCategory
+                                    };
+                                }
+
+                                @await Html.PartialAsync("_CategoryLine.Navigation", categorySubLineModel)
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                    $('#@Html.Raw($"divAccordeonSub_{subCategory.Id}")').on('shown.bs.collapse', function (s) {
+                        $(s.target).parent().find('.fa-minus').removeClass('d-none')
+                        $(s.target).parent().find('.fa-plus').addClass('d-none')
+                    });
+
+                    $('#@Html.Raw($"divAccordeonSub_{subCategory.Id}")').on('hidden.bs.collapse', function (s) {
+                        $(s.target).parent().find('.fa-minus').addClass('d-none')
+                        $(s.target).parent().find('.fa-plus').removeClass('d-none')
+                    });
+
+
+
+                </script>
+
+                @if (subCategory.Id == Html.GetSessionInt("filterCurrentCategory"))
+                {
+                    <script>
+                        var parentObj = $('#@Html.Raw($"collapse_cat_{subCategory.Id}")').parent();
+                        while (parentObj.prop('id') != 'accordionCategories')
+                        {
+                            var coll = parentObj.find('.collapse').not('.show')
+                            if (coll != null && typeof(coll) != 'undefined')
+                            {
+                                $(coll).addClass('show');
+
+                                $(coll).parent().find('.fa-minus').removeClass('d-none')
+                                $(coll).parent().find('.fa-plus').addClass('d-none')
+
+                                $(coll).parent().find('.fa-chevron-up').removeClass('d-none')
+                                $(coll).parent().find('.fa-chevron-down').addClass('d-none')
+                            }
+
+                            parentObj = $(parentObj).parent();
+                        }
+                    </script>
+                }
+            }
+            else
+            {
+                <div class="row justify-content-end colorGeneralBackgroundGray pb-1 pt-1" id="@Html.Raw($"item_cat_{subCategory.Id}")">
+                    <div class="col-lg-9 d-flex p-0">
+                        <label class="my-auto">
+                            <a class="p-0" href="@Url.RouteUrl("Category", new { SeName = subCategory.SeName })" style="font-size: 0.795rem !important;">
+                                @subCategory.Name
+                                @if (subCategory.NumberOfProducts.HasValue)
+                                {
+                                    <text> </text>@T("Categories.TotalProducts", subCategory.NumberOfProducts.Value)
+                                }
+                            </a>
+                        </label>
+                    </div>
+                </div>
+
+                @*@await Html.PartialAsync("_CategoryLine.Navigation", categoryLineModel)*@
+
+                @if (subCategory.Id == Html.GetSessionInt("filterCurrentCategory"))
+                {
+                    <script>
+                        var parentObj = $('#@Html.Raw($"item_cat_{subCategory.Id}")').parent();
+                        while (parentObj.prop('id') != 'accordionCategories')
+                        {
+                            var coll = parentObj.find('.collapse').not('.show')
+                            if (coll != null && typeof(coll) != 'undefined')
+                            {
+                                $(coll).addClass('show');
+
+                                $(coll).parent().find('.fa-minus').removeClass('d-none')
+                                $(coll).parent().find('.fa-plus').addClass('d-none')
+
+                                $(coll).parent().find('.fa-chevron-up').removeClass('d-none')
+                                $(coll).parent().find('.fa-chevron-down').addClass('d-none')
+                            }
+
+                            parentObj = $(parentObj).parent();
+                        }
+                    </script>
+                }
+            }
+
+        }
+
+        // }
+    }
+}
+

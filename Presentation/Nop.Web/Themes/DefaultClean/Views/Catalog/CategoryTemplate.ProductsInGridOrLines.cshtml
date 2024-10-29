@@ -1,0 +1,328 @@
+﻿@model CategoryModel
+@using Nop.Core.Domain.Common
+@using Nop.Core.Domain.Seo
+@inject Nop.Core.IWebHelper webHelper
+@inject SeoSettings seoSettings
+@inject CommonSettings commonSettings
+@using Nop.Core
+@using Nop.Services.Helpers
+@using Nop.Core.Domain.Orders
+@using Nop.Core.Domain.Tax
+@inject IWebHelper webHelper
+@using System.Text.Encodings.Web;
+@using Microsoft.AspNetCore.Html;
+@inject IUserAgentHelper userAgentHelper
+@{
+    Layout = "_ColumnsTwo";
+
+    //title
+    Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
+    //meta
+    Html.AddMetaDescriptionParts(Model.MetaDescription);
+    Html.AddMetaKeywordParts(Model.MetaKeywords);
+    //page class
+    Html.AppendPageCssClassParts("html-category-page");
+
+    if (seoSettings.CanonicalUrlsEnabled)
+    {
+        var categoryUrl = Url.RouteUrl("Category", new { SeName = Model.SeName }, webHelper.CurrentRequestProtocol).ToLowerInvariant();
+        Html.AddCanonicalUrlParts(categoryUrl, seoSettings.QueryStringInCanonicalUrlsEnabled);
+    }
+
+    var breadcrumbDelimiter = commonSettings.BreadcrumbDelimiter;
+
+    var url_section = ((Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol)Url.ActionContext.HttpContext.Features).Path.ToString();
+}
+@*category breadcrumb*@
+@*<div class="HeaderCategory">*@
+@{
+    //current category ID
+    var currentCategoryId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("catalog", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("category", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentCategoryId = Convert.ToInt32(Url.ActionContext.RouteData.Values["categoryId"].ToString());
+    }
+
+
+    //current manufacturer ID
+    var currentManufacturerId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("catalog", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("manufacturer", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentManufacturerId = Convert.ToInt32(Url.ActionContext.RouteData.Values["manufacturerId"].ToString());
+    }
+
+
+    //current product ID
+    var currentProductId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("product", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("productdetails", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentProductId = Convert.ToInt32(Url.ActionContext.RouteData.Values["productId"].ToString());
+    }
+
+}
+<div class="row div-zone-filters-popup">
+    <div class="col-12 filters-zone-mobile">
+        <div class="row border-bottom-filters-zone-mobile">
+            <div class="wop col-6">
+                <img src="/images/filters_mobile.png" />
+                <span><b>Filters</b></span>
+            </div>
+            <div class="wop col-6">
+                <img src="/images/arrow_left_mobile.png" style="float:right; cursor: pointer;" onclick="filterToggle(); return false;" />
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+
+        @*@await Html.PartialAsync("_FilterPriceBoxMobile", Model.PagingFilteringContext.PriceRangeFilter)*@
+
+        @await Component.InvokeAsync("CategoryNavigation", new { currentCategoryId = currentCategoryId, currentProductId = currentProductId })
+    </div>
+    <div class="col-12">
+        @*@await Component.InvokeAsync("ManufacturerNavigation", new { currentManufacturerId = currentManufacturerId })*@
+    </div>
+    
+</div>
+<style>
+    .btn-filters-version-mobile {
+        display: block !important;
+    }
+</style>
+@section Breadcrumb
+    {
+    @if (Model.DisplayCategoryBreadcrumb)
+    {
+        <div class="form-inline text-breadcrumb mt-2 mb-5" itemscope itemtype="http://schema.org/BreadcrumbList">
+            <span>
+                <a href="@Url.RouteUrl("Homepage")">
+                    <span>@T("Products.Breadcrumb.Top")</span>
+                </a>
+            </span>
+            @{ int position = 1; }
+            @foreach (var cat in Model.CategoryBreadcrumb)
+            {
+                var isLastCategory = cat.Id == Model.Id;
+
+                <span>&nbsp; /&nbsp; </span>
+                <div itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+
+                    @if (isLastCategory)
+                    {
+                        <a href="javascript:void(0)" style="cursor:initial" itemprop="item" itemscope itemtype="http://schema.org/Thing">
+                            <span itemprop="name">@cat.Name</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.RouteUrl("Category", new { SeName = cat.SeName })" itemprop="item">
+                            <span itemprop="name">@cat.Name</span>
+                        </a>
+                    }
+
+                    <meta itemprop="position" content="@position" />
+                </div>
+                position++;
+            }
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>@Model.Name</h1>
+            </div>
+        </div>
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsAfterBreadcrumb, additionalData = Model })
+    }
+}
+@*<div class="page-title">
+        <h1>@Model.Name</h1>
+    </div>*@
+@*</div>*@
+
+<div class="row">
+    <div class="col-lg-12">
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsTop, additionalData = Model })
+
+        @*@if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="category-description">
+                    @Html.Raw(Model.Description)
+                </div>
+            }*@
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsBeforeSubcategories, additionalData = Model })
+
+        @if (Model.SubCategories.Count > 0)
+        {
+            <div class="category-grid sub-category-grid">
+                <div class="item-grid">
+                    @foreach (var item in Model.SubCategories)
+                    {
+                        <div class="item-box">
+                            <div class="sub-category-item">
+                                <h2 class="title" style="color: #444 !important;">
+                                    <a href="@Url.RouteUrl("Category", new { SeName = item.SeName })" title="@item.PictureModel.Title">
+                                        &nbsp;&nbsp;@item.Name
+                                    </a>
+                                </h2>
+                                <div class="picture">
+                                    <a href="@Url.RouteUrl("Category", new { SeName = item.SeName })" title="@item.PictureModel.Title">
+                                        <img alt="@item.PictureModel.AlternateText" src="@item.PictureModel.ImageUrl" title="@item.PictureModel.Title" />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsBeforeFeaturedProducts, additionalData = Model })
+
+        @if (Model.FeaturedProducts.Count > 0)
+        {
+            <div class="product-grid featured-product-grid">
+                <div class="title">
+                    <strong>@T("Products.FeaturedProducts")</strong>
+                </div>
+                <div class="item-grid">
+                    @foreach (var item in Model.FeaturedProducts)
+                    {
+                        <div class="item-box">
+                            @await Html.PartialAsync("_ProductBox", item)
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsAfterFeaturedProducts, additionalData = Model })
+        @if (Model.Products.Count > 0)
+        {
+            <div id="div_CatalogSelectors">
+                @await Html.PartialAsync("_CatalogSelectors", Model.PagingFilteringContext)
+            </div>
+        }
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsBeforeFilters, additionalData = Model })
+
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsBeforeProductList, additionalData = Model })
+
+        @if (Model.Products.Count > 0)
+        {
+
+            @if (Model.PagingFilteringContext.ViewMode == "list")
+            {
+                <div class="row">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="wop col-lg-12 mb-4 product-box-more-info">
+                            @await Html.PartialAsync("_ProductBoxMoreInfoHorizontal", product)
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var product in Model.Products)
+                    {
+                        <div class="wop col-lg-4 mb-4 product-box-more-info">
+                            @await Html.PartialAsync("_ProductBoxMoreInfo", product)
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+
+        @if (Model.Products.Count <= 0)
+        {
+            <div id="list-products">
+                <div class="search-results">
+                    <div class="buttons no-result" id="no-result">
+                        <strong>@T("Search.NoResultsText")</strong>
+                    </div>
+                </div>
+            </div>
+
+        }
+
+        @{
+            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber");
+        }
+        @if (!pager.IsEmpty())
+        {
+            <div class="pager">
+                @pager
+            </div>
+        }
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.CategoryDetailsBottom, additionalData = Model })
+
+    </div>
+</div>
+
+@*@{
+        IHtmlContent RelatedProducts = HtmlString.Empty;
+        string[] categories = { "Packaging", "Pads & Home Protection", "Truck & Cargo", "Hand Trucks & Dollies", "Delivery Equipment", "Office & Industrial" };
+        if (Array.Exists(categories, id => id == Model.Name) )
+        {
+            Model.Id = Model.SubCategories[0].Id;
+        }
+        RelatedProducts = await Component.InvokeAsync("RelatedProducts", new { productsIds = Model.Products.Select(x => x.Id).ToList(), categoryId = Model.Id });
+
+    }
+
+    <div class="row">
+        <div class="buttons">
+            <div class="related-product" id="RelateProduct" style="display: block; text-align:center">
+                @RelatedProducts
+            </div>
+        </div>
+    </div>*@
+
+
+<style>
+    .reachLink {
+        margin-top: 0 !important;
+    }
+
+    #RelateProduct .title {
+        margin: 35px 0 20px;
+        height: 49px;
+        text-align: center !important;
+    }
+
+    /* .category-page .item-grid .item-box {
+                    height: 480px !important;
+                }*/
+
+    .category-page .product-list .item-box .picture a img {
+        height: 80% !important;
+    }
+
+    .category-page .product-list .item-box .description p {
+        width: 80% !important;
+    }
+
+    .category-page .search-results .add-info .price, .category-page .item-box .prices {
+        width: 100% !important;
+    }
+
+    .search-page .no-result {
+        height: 147% !important;
+    }
+
+    .slick-carousel .item-box {
+        height: 100% !important;
+    }
+
+    .quickView, .quickViewWindow {
+        min-width: 0 !important;
+        width: 660px !important;
+        position: fixed;
+        top: 25% !important;
+        bottom: 0;
+        overflow-y: auto;
+        max-height: 673px;
+        top: 5% !important;
+    }
+</style>

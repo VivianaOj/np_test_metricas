@@ -1,0 +1,40 @@
+﻿@model ProductDetailsModel.ProductBreadcrumbModel
+@using Nop.Core.Domain.Common
+@inject CommonSettings commonSettings
+@{
+    var breadcrumbDelimiter = commonSettings.BreadcrumbDelimiter;
+}
+@if (Model.Enabled)
+{
+    <div class="form-inline text-breadcrumb mt-2 mb-5" itemscope itemtype="http://schema.org/BreadcrumbList">
+        <span>
+            <a href="@Url.RouteUrl("Homepage")">
+                <span>@T("Products.Breadcrumb.Top")</span>
+            </a>
+        </span>
+        @{ int position = 1; }
+        @foreach (var category in Model.CategoryBreadcrumb)
+        {
+            <span>&nbsp; /&nbsp; </span>
+            <div itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+                <a href="@Url.RouteUrl("Category", new { SeName = category.SeName })" itemprop="item">
+                    <span itemprop="name">@category.Name</span>
+                </a>
+                <meta itemprop="position" content="@position" />
+            </div>
+            position++;
+        }
+        <span>&nbsp; /&nbsp; </span>
+        <div itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            <span>
+                <strong class="active" itemprop="name">@Model.ProductName</strong>
+            </span>
+            <span itemprop="item" itemscope itemtype="http://schema.org/Thing"
+                  id="@Url.RouteUrl("Product", new { SeName = Model.ProductSeName })">
+            </span>
+            <meta itemprop="position" content="@position" />
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductBreadcrumbAfter, additionalData = Model })
+        </div>
+    </div>
+ 
+} 

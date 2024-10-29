@@ -1,0 +1,183 @@
+﻿@model CatalogPagingFilteringModel.PriceRangeFilterModel
+@{
+    var selectedItem = Model.Items.FirstOrDefault(x => x.Selected);
+
+    string toggleStateClass = "toggleControl";
+    string toggleStateStyles = string.Empty;
+
+    //My css
+
+    Html.AddCssFileParts("~/Themes/DefaultClean/Content/css/filter-price.css");
+    Html.AddCssFileParts("~/Themes/DefaultClean/Content/css/price_range_style.css");
+    Html.AddCssFileParts("~/lib/jquery-ui/jquery-ui-1.12.1.custom/jquery-ui.css");
+
+    //Jquery
+    Html.AddScriptParts(ResourceLocation.Footer, "~/lib/jquery-ui/jquery-ui-1.12.1.custom/jquery-ui.min.js");
+    Html.AppendScriptParts(ResourceLocation.Footer, "~/js/JavaScript.js");
+
+    //My js
+    Html.AddScriptParts(ResourceLocation.Footer, "~/Themes/DefaultClean/Content/js/price_range_script.js");
+
+    var url_section = ((Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol)Url.ActionContext.HttpContext.Features).Path.ToString();
+    var query = ((Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol)Url.ActionContext.HttpContext.Features).QueryString.ToString();
+
+}
+
+@* Estyle button *@
+<style>
+
+    .button-close {
+        border-radius: 50%;
+        padding: 0.5em;
+        width: 30px;
+        height: 30px;
+        border: 1px solid;
+        color: transparent;
+        position: relative;
+    }
+
+        .button-close:hover {
+            border: 2px solid;
+            background-color: transparent;
+            color: black;
+        }
+
+        .button-close::before {
+            content: " ";
+            position: absolute;
+            display: block;
+            background-color: black;
+            width: 2px;
+            left: 12px;
+            top: 5px;
+            bottom: 5px;
+            transform: rotate(45deg);
+        }
+
+        .button-close::after {
+            content: " ";
+            position: absolute;
+            display: block;
+            background-color: black;
+            height: 2px;
+            top: 12px;
+            left: 5px;
+            right: 5px;
+            transform: rotate(45deg);
+        }
+
+
+
+    .input-icon {
+        position: relative;
+    }
+
+        .input-icon > i {
+            position: absolute;
+            display: block;
+            transform: translate(0, -50%);
+            top: 45%;
+            pointer-events: none;
+            width: 25px;
+            text-align: center;
+            font-style: normal;
+        }
+
+        .input-icon > input {
+            padding-left: 25px;
+            padding-right: 0;
+        }
+
+    .input-icon-right > i {
+        right: 0;
+    }
+
+    .input-icon-right > input {
+        padding-left: 0;
+        padding-right: 25px;
+        text-align: right;
+    }
+</style>
+
+<div class="nopAjaxFilters7Spikes">
+    <div class="filtersPanel">
+        <div class="block filter-block priceRangeFilterPanel7Spikes">
+            <div class="title">
+                <a class="@toggleStateClass title-filter-zone-desktop">@T("SevenSpikes.NopAjaxFilters.Client.PriceRangeFilter.Title")</a>
+                <a class="@toggleStateClass title-filter-zone-mobile" onclick="filterPriceToggle(); return false;">@T("SevenSpikes.NopAjaxFilters.Client.PriceRangeFilter.Title")</a>
+            </div>
+
+            <div class="filtersGroupPanel" style="@toggleStateStyles">
+                @{
+                    var prmodel = Model.Items.OrderByDescending(o => o.To).FirstOrDefault();
+                    string min = "0";
+                    string max = "10000";
+                    string from = min.Remove(0, 1);
+                    string selFrom = from;
+                    string FilterUrl = "";
+                }
+
+                @if (selectedItem != null)
+                {
+                    selFrom = decimal.Parse(selectedItem.From.Remove(0, 1)).ToString();
+                    FilterUrl = @selectedItem.FilterUrl;
+                }
+                <div class="position-filter">
+                    <table class="filter-table">
+                        <tr>
+                            <td>
+                                <div class="input-icon">
+                                    <input min=@selFrom max="100000" type="number" class="form-control" value="" id="min_price_mobile" />
+                                    <i>$</i>
+                                </div>
+                            </td>
+                            <td style="  text-align: center;">
+                                <small>to </small>
+                            </td>
+                            <td>
+                                <div class="input-icon">
+                                    <input min=@from max="100000" type="number" class="form-control" value="" oninput="validity.valid||(value='@from');" id="max_price_mobile" />
+                                    <i>$</i>
+                                </div>
+                            </td>
+                            <td class="center">
+                                <input type="hidden" id="base_url" value="@url_section"/>
+                                <input type="hidden" id="base_query" value="@query"/>
+                                <button onclick="filterApply(); return false;"  class="btn btn-default" id="btn-filter-price" style="height:34px"><i class="fa fa-arrow-right"></i></button>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function filterApply() {
+        let min = $("#min_price_mobile").val();
+        let max = $("#max_price_mobile").val();
+        let url = $("#base_url").val();
+        let query = $("#base_query").val();
+
+        let full_url = "";
+
+        if (url == "/search") {
+            full_url = url + query + "&price=" + min + "-" + max;
+        } else {
+            full_url = url + "?price=" + min + "-" + max;
+        }
+        /*
+        if (query == "") {
+            full_url = url + "?price=" + min + "-" + max;
+        } else {
+            full_url = url + query + "&price=" + min + "-" + max;
+        }
+        */
+            
+        $(window).attr('location', '@Url.RouteUrl("Home", "Index")' + full_url);
+
+    }
+</script>
+

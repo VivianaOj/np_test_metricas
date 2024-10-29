@@ -1,0 +1,258 @@
+﻿@model Nop.Web.Models.Catalog.SearchModel
+@using Nop.Core.Domain.Common
+@using Nop.Core.Domain.Seo
+@inject CommonSettings commonSettings
+@{
+    Layout = "_ColumnsTwo";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Search").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-search-page");
+
+    var breadcrumbDelimiter = commonSettings.BreadcrumbDelimiter;
+}
+<script asp-location="Footer">
+    $(document).ready(function () {
+        $("#@Html.IdFor(model => model.adv)").on('click', toggleAdvancedSearch);
+        toggleAdvancedSearch();
+	});
+
+    var check = false;
+    buttonfilteropen = document.querySelector("#filtervisible > span");
+    buttonfilteropen.onclick = function (event) {
+        if (check == false) {
+            check = true;
+            side = document.querySelector("body > div.master-wrapper-page > div.master-wrapper-content > div.master-column-wrapper > div.side-2");
+            side.style.display = "none";
+            center = document.getElementsByClassName("center-2").item(0);
+            center.style.width = "90%";
+            document.getElementsByClassName("item-box").style.width = "25%";
+            buttonfilteropen.classList.remove("glyphicon-menu-left");
+            buttonfilteropen.classList.add("glyphicon-menu-right");
+        }
+        else {
+            check = false;
+            side = document.querySelector("body > div.master-wrapper-page > div.master-wrapper-content > div.master-column-wrapper > div.side-2");
+            side.style.display = "inline";
+            center = document.getElementsByClassName("center-2").item(0);
+            center.style.width = "70%";
+            document.getElementsByClassName("item-box").style.width = "33.3%";
+            buttonfilteropen.classList.add("glyphicon-menu-left");
+            buttonfilteropen.classList.remove("glyphicon-menu-right");
+        }
+    }
+
+    function toggleAdvancedSearch() {
+        if ($('#@Html.IdFor(model => model.adv)').is(':checked')) {
+			$('#advanced-search-block').show();
+        }
+        else {
+			$('#advanced-search-block').hide();
+        }
+    }
+</script>
+
+<style>
+
+    .search-page .product-list .item-box .description p {
+        width: 80% !important;
+    }
+
+    .search-page .no-result {
+        color: #e4434b !important;
+        font-size: 20px;
+        height: 147% !important;
+    }
+
+    .quickView, .quickViewWindow {
+        min-width: 0 !important;
+        width: 660px !important;
+        position: fixed;
+        top: 25% !important;
+        bottom: 0;
+        overflow-y: auto;
+        max-height: 673px;
+        top: 5% !important;
+    }
+</style>
+@{
+    //current category ID
+    var currentCategoryId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("catalog", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("category", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentCategoryId = Convert.ToInt32(Url.ActionContext.RouteData.Values["categoryId"].ToString());
+    }
+
+
+    //current manufacturer ID
+    var currentManufacturerId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("catalog", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("manufacturer", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentManufacturerId = Convert.ToInt32(Url.ActionContext.RouteData.Values["manufacturerId"].ToString());
+    }
+
+
+    //current product ID
+    var currentProductId = 0;
+    if (Url.ActionContext.RouteData.Values["controller"].ToString().Equals("product", StringComparison.InvariantCultureIgnoreCase) &&
+        Url.ActionContext.RouteData.Values["action"].ToString().Equals("productdetails", StringComparison.InvariantCultureIgnoreCase))
+    {
+        currentProductId = Convert.ToInt32(Url.ActionContext.RouteData.Values["productId"].ToString());
+    }
+
+}
+<div class="row div-zone-filters-popup">
+    <div class="col-12 filters-zone-mobile">
+        <div class="row border-bottom-filters-zone-mobile">
+            <div class="wop col-6">
+                <img src="/images/filters_mobile.png" />
+                <span><b>Filters</b></span>
+            </div>
+            <div class="wop col-6">
+                <img src="/images/arrow_left_mobile.png" style="float:right; cursor: pointer;" onclick="filterToggle(); return false;" />
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+       
+        @*@await Html.PartialAsync("_FilterPriceBoxMobile", Model.PagingFilteringContext.PriceRangeFilter)*@
+
+        @await Component.InvokeAsync("CategoryNavigation", new { currentCategoryId = currentCategoryId, currentProductId = currentProductId })
+    </div>
+    <div class="col-12">
+        @*@await Component.InvokeAsync("ManufacturerNavigation", new { currentManufacturerId = currentManufacturerId })*@
+    </div>
+    <div class="col-12">
+        @await Component.InvokeAsync("PopularProductTags")
+    </div>
+</div>
+<style>
+    .btn-filters-version-mobile {
+        display: block !important;
+    }
+</style>
+@section Breadcrumb
+    {
+    <div class="form-inline text-breadcrumb mt-2 mb-5" itemscope itemtype="http://schema.org/BreadcrumbList">
+        <span>
+            <a href="@Url.RouteUrl("Homepage")">
+                <span>@T("Products.Breadcrumb.Top")</span>
+            </a>
+        </span>
+        <span>&nbsp; /&nbsp; </span>
+        <a href="javascript:void(0)" style="cursor:initial" itemprop="item" itemscope itemtype="http://schema.org/Thing">
+            <span itemprop="name">
+                @T("search"):@Model.q
+            </span>
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12 tex">
+            <h1>@Model.PagingFilteringContext.TotalItems Results for: <strong>“@Model.q”</strong></h1>
+        </div>
+    </div>
+
+
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="page search-page">
+            <div id="filtervisible">
+                <span class="glyphicon glyphicon-menu-left"></span>
+            </div>
+            <div class="page-body" id="searchResultBody">
+                <div id="list-products">
+
+                    @if (Model.Products.Count > 0)
+                    {
+                        <div id="div_CatalogSelectors">
+                            <div class="inputs" style="position: absolute; margin-top: 35px;">
+                                <input value="@T("search.showing") @Model.PagingFilteringContext.TotalItems @T("search.Resultfor") '@Model.q.ToUpper()'" class="search-text" disabled style="border:0px" />
+                            </div>
+
+                            @await Html.PartialAsync("_CatalogSelectors", Model.PagingFilteringContext)
+                        </div>
+                    }
+                    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductSearchPageBeforeResults })
+                    <div class="search-results">
+                        @if (!string.IsNullOrEmpty(Model.Warning))
+                        {
+                            <div class="warning">
+                                @Model.Warning
+                            </div>
+                        }
+
+                        @if (Model.NoResults)
+                        {
+                            <div class="buttons no-result" id="no-result">
+                                <strong>@T("Search.NoResultsText")</strong>
+                            </div>
+                        }
+
+                        @if (Model.Products.Count > 0)
+                        {
+                            if (Model.PagingFilteringContext.ViewMode == "list")
+                            {
+                                <div class="row">
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <div class="wop col-lg-12 mb-4 product-box-more-info">
+                                            @await Html.PartialAsync("_ProductBoxMoreInfoHorizontal", product)
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="row">
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <div class="wop col-lg-4 mb-4 product-box-more-info">
+                                            @await Html.PartialAsync("_ProductBoxMoreInfo", product)
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                        }
+                        @{
+                            var pager = Html.Pager(Model.PagingFilteringContext).QueryParam("pagenumber").BooleanParameterName("adv").BooleanParameterName("isc").BooleanParameterName("sid").RenderEmptyParameters(true);
+                        }
+
+                        @if (!pager.IsEmpty())
+                        {
+                            <div class="pager">
+                                @pager
+                            </div>
+                        }
+                    </div>
+
+                    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductSearchPageAfterResults })
+
+                    <div class="row">
+                        <div class="buttons">
+                            <div class="related-product" id="ProductAlsoPurchaseSection" style="display: block; text-align:center">
+                                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderSummaryContentAfter })
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="relatedproducts-search">
+                    @if (Model.Products.Count() > 0)
+                    {
+                        await Component.InvokeAsync("RelatedProducts", new { productId = Model.Products.First().Id });
+                    }
+                </div>
+                
+                
+
+            </div>
+        </div>
+    </div>
+</div>

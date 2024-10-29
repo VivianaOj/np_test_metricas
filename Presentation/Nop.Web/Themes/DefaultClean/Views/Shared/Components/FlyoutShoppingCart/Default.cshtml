@@ -1,0 +1,542 @@
+﻿@model MiniShoppingCartModel
+
+<div id="flyout-cart" class="flyout-cart">
+    <div class="mini-shopping-cart">
+        <div class="count">
+            @if (Model.TotalProducts == 0)
+            {
+                @T("ShoppingCart.Mini.NoItems")
+            }
+            else
+            {
+                @Html.Raw(string.Format(T("ShoppingCart.Mini.ItemsText").Text, $"<a href=\"{Url.RouteUrl("ShoppingCart")}\"> <span id='TotalProducts'>{string.Format(T("ShoppingCart.Mini.Items").Text, Model.TotalProducts)}</span> </a>"))
+            }
+        </div>
+        @if (Model.TotalProducts > 0)
+        {
+            <form asp-route="ShoppingCart" method="post" enctype="multipart/form-data" id="shopping-cart-form">
+                <div class="items">
+                    @for (var i = 0; i < Model.Items.Count; i++)
+                    {
+                        var item = Model.Items[i];
+
+                        var IncrementQuantity = 1;
+
+                        if (item.IncrementQuantity > 1)
+                        {
+                            IncrementQuantity = item.IncrementQuantity;
+                        }
+
+                        <div class="item @(i == 0 ? "first" : null)" id="ItemProd_@(item.Id)">
+                            @if (Model.ShowProductImages)
+                            {
+                                <div class="picture">
+                                    <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })" title="@item.Picture.Title">
+                                        <img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" />
+                                    </a>
+                                </div>
+                            }
+                            <div class="row mx-auto" style="margin-bottom: 20px;">
+                                <div class="col-md-10">
+                                    <div class="name">
+                                        <a class="name-item-shopping" href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })">@item.ProductName</a>
+                                        @if (item.OutStock)
+                                        {
+                                            <div class="message-error" style="font-weight: 900;">
+                                                <ul>
+                                                    @T("Product.outStok")
+                                                </ul>
+                                            </div>
+                                        }
+                                        @if (item.UnShippable)
+                                        {
+                                            <div class="message-error" style="font-weight: 900;">
+                                                <ul>
+                                                    @T("Product.UnShippable")
+                                                </ul>
+                                            </div>
+                                        }
+                                    </div>
+
+                                            @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                            {
+                                                <div class="attributes">
+                                                    @Html.Raw(item.AttributeInfo)
+                                                </div>
+                                            }
+                                        </div>
+                                <div class="col-md-12" style="border-bottom: 1px solid #dddddd;margin-top: 10px;margin-bottom: 10px;"></div>
+                                <div class="col-md-8">
+                                    <div class="row justify-content-end">
+
+                                        @if (!item.OutStock)
+                                        {
+
+                                            <div class="col-3 p-0 d-flex">
+                                                <button id="quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus my-auto mx-auto" type="button" onclick="decrementProduct('@(item.Id)', @IncrementQuantity)" style="float:right">
+                                                    <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="col-3 p-0 d-flex">
+                                                <div style="opacity:0.5"  class="ButtonsaddToCart ButtonsaddToCartMinus my-auto mx-auto" style="float:right">
+                                                    <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                </div>
+                                            </div>
+                                        }
+                                        <div class="col-6 p-0">
+                                            @{ if (item.IncrementQuantity > 0)
+                                                {
+                                                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+                                                           type="number" maxlength="5"
+                                                           onchange="updateProductsCart('@(item.Id)', true, @IncrementQuantity, '@item.quantityMessage', @item.Quantity)" for="itemquantity@(item.Id)"
+                                                           class="form-control" name="itemquantity@(item.Id)" id="itemquantity@(item.Id)" value="@(item.Quantity)"
+                                                           style="float: left;text-align: center; background: #fff;" />
+
+                                                }
+                                                else
+                                                {
+                                                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+                                                           type="number" maxlength="4" onchange="updateProductsCart('@(item.Id)', false,1," ",1)"
+                                                           for="itemquantity@(item.Id)" class="form-control" name="itemquantity@(item.Id)" id="itemquantity@(item.Id)" value="@(item.Quantity)" style="float: left;text-align: center; background: #fff;" />
+                                                }
+                                            }
+                                            @*<input name="O_itemquantity@(item.Id)" id="O_itemquantity@(item.Id)" type="text" value="@(item.Quantity)" class="qty-input product-order-summary" />*@
+                                        </div>
+                                        @if (!item.OutStock)
+                                        {
+                                            <div class="col-3 p-0 d-flex">
+                                                <button id="quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore my-auto mx-auto" type="button" onclick="incrementProduct('@(item.Id)',@IncrementQuantity)" style="float:left">
+                                                    <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                </button>
+                                            </div>
+
+                                        }
+                                        else
+                                        {
+                                            <div class="col-3 p-0 d-flex">
+                                                <div style="opacity:0.5" class="ButtonsaddToCart ButtonsaddToCartMore my-auto mx-auto" style="float:left">
+                                                    <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                    @*<button id="quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus" type="button" onclick="decrementProduct('@(item.Id)')" style=" border-radius: 50% !important;float: left; border-radius: 50%;color: white; width: 30px; height: 30px; border: 0px; margin-left: 10px">
+                            <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                        </button>
+                        <input for="itemquantity@(item.Id)" class="form-control" name="itemquantity@(item.Id)" id="itemquantity@(item.Id)" value="@(item.Quantity)" style="float:left;width:55px;margin-left:10px;text-align: center;" />
+                        <button id="quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore" type="button" onclick="incrementProduct('@(item.Id)')" style="border-radius: 50% !important; float: left; border-radius: 50%; color: white; width: 30px; height: 30px; border: 0px; margin-left: 10px">
+                            <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                        </button>*@
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="price-shoping-card product-subtotal">
+                                        @item.UnitPrice
+                                       <br />
+                                       <span style=" text-align: center;  font-size: 0.5em !important;">
+                                           @T("shoppingcart.mini.unitprice")
+                                       </span>
+                                                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                      
+                    }
+                </div>
+                <div class="row">
+                    <div class="col-md-2"></div>
+                    <div class="col-md-3">
+                        <span class="sub-total-label"> @T("ShoppingCart.Totals.SubTotal"): </span>
+                    </div>
+                    <div class="col-md-3">
+                        <span id="SubTotal" class="product-subtotal sub-total">@Model.SubTotal</span>
+                    </div>
+                    <br />
+                </div>
+                <div class="row">
+                    <div class="col-md-3" style="margin-left: 35px;margin-right: 30px;">
+                        @if (Model.DisplayShoppingCartButton)
+                        {
+                            <button name="continueshopping" value="@T("ShoppingCart.ContinueShopping")" class="button-2 continue-shopping-button boton-continuar" type="submit">
+                                <i class="nn- nn-shopping-bag footer-icon-size icon-blue"></i>&nbsp;&nbsp;@T("ShoppingCart.ContinueShopping")
+                            </button>
+                        }
+                    </div>
+                    <div class="col-md-3" style="margin-left: 50px;margin-right: 50px;">
+                        @if (Model.DisplayShoppingCartButton)
+                        {
+                            <input type="button" value="Checkout" onclick="setLocation('@(Url.RouteUrl("ShoppingCart"))')" class="button-2 continue-shopping-button boton-checkout" />
+                        }
+                    </div>
+                </div>
+                @if (Model.DisplayCheckoutButton)
+                {
+                    var checkoutUrl = "";
+                    if (Model.AnonymousCheckoutAllowed && Model.CurrentCustomerIsGuest)
+                    {
+                        checkoutUrl = Url.RouteUrl("LoginCheckoutAsGuest", new { returnUrl = Url.RouteUrl("ShoppingCart") });
+                    }
+                    else
+                    {
+                        checkoutUrl = Url.RouteUrl("Checkout");
+                    }
+                    @*<div class="row">
+                            <div class="col-md-6">
+                                <input type="button" name="continueshopping" value="@T("ShoppingCart.ContinueShopping")" class="button-2 continue-shopping-button" onclick="setLocation('@checkoutUrl')" />
+                            </div>
+                            <div class="col-md-6">
+                                <input type="button" value="Checkout" class="btn btn-info" onclick="setLocation('@checkoutUrl')" />
+                            </div>
+                        </div>*@
+                }
+
+            </form>
+        }
+    </div>
+</div>
+
+<style>
+    .mini-shopping-cart .item {
+        padding: 3px !important;
+        margin: 0 0 10px !important;
+    }
+
+    .mini-shopping-cart .totals {
+        margin: -5px;
+    }
+
+    .btn-continue {
+        display: inline-block;
+        min-width: 150px;
+        margin: 5px;
+        border: none;
+        background-color: #aaa;
+        padding: 10px 20px;
+        font-size: 15px;
+        color: #fff;
+        width: 110%;
+    }
+
+    .background-blue {
+        background-color: #4ab2f1 !important;
+    }
+
+    .mini-shopping-cart .count {
+        padding: 5px 0 15px;
+        color: #444;
+        font-size: 15px !important;
+        width: 100%;
+    }
+
+    .name-item-shopping, .name-item-shopping:hover {
+        font-size: 14px !important;
+    }
+
+    .price-shoping-card {
+        font-size: 20px !important;
+    }
+
+    .sub-total-label {
+        
+        font-style: normal;
+        font-weight: bold;
+        font-size: 16px;
+        line-height: 38px;
+        display: flex;
+        align-items: center;
+        color: #78909C;
+    }
+
+    .sub-total {
+        
+        font-style: normal;
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 34px;
+        align-items: center;
+        color: #E44436;
+        display: flex;
+    }
+
+    .boton-continuar {
+        
+        font-style: normal;
+        font-weight: bold;
+        font-size: 14px;
+        line-height: 18px;
+        display: flex;
+        align-items: center;
+        text-transform: capitalize;
+        color: #E44436;
+        width: 180px;
+        height: 37px;
+        background: #FFFFFF;
+        border: 1px solid #E44436;
+        box-sizing: border-box;
+        border-radius: 4px !important;
+    }
+
+    .boton-checkout {
+        width: 180px;
+        height: 37px;
+        background: #37AEF3;
+        border: 1px solid #37AEF3 !important;
+        box-sizing: border-box;
+        border-radius: 4px !important;
+    }
+
+    .icon-blue {
+        color: #37AEF3;
+    }
+
+    @@media (max-width: 800px) {
+        .boton-checkout {
+            border: 1px solid #37aef3 !important;
+            box-sizing: border-box;
+            border-radius: 4px !important;
+            display: block;
+            padding: 5px !important;
+            width: 100% !important;
+        }
+    }
+</style>
+
+
+<script>
+            function incrementProduct(id, IncrementQty) {
+               
+
+                var value = $("#itemquantity" + id).val();
+
+                if (value > 0) {
+                    var newValue = parseInt(value) + IncrementQty;
+
+                    $("#itemquantity" + id).val(newValue);
+
+                    if (newValue > 0) {
+                        $("#quantitySelectorAmount_" + id).html(newValue);
+                        $("#itemquantity" + id).val(newValue);
+                    }
+
+                    if (newValue == 0) {
+                        $("#quantitySelectorMinus_" + id).css("opacity", "0.5");
+                    }
+                    $(".ButtonsaddToCart").addClass("disabledContent");
+                    $.ajax({
+                        type: 'POST',
+                        async: true,
+                        url: "@Url.Action("UpdateCartItem", "ShoppingCart")",
+                        data: $("#shopping-cart-form").serialize(),
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.SubTotal != null) {
+
+                                $("#SubTotal").html("");
+                                $("#SubTotal").html(data.SubTotal);
+
+                                if ($("#TotalShoppingCartItems")) {
+                                    $("#TotalShoppingCartItems").html("");
+                                    $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                                }
+
+                                $("#TotalProducts").html("");
+                                $("#TotalProducts").html(data.TotalProducts + " item(s)");
+
+                                if (newValue == 0 || data.TotalItemCart == 0) {
+                                    $("#ItemProd_" + id).remove();
+                                }
+                            }
+                            $(".ButtonsaddToCart").removeClass("disabledContent");
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            // alert('Failed to update cart');
+                        }
+                    });
+                }
+
+            }
+
+            function decrementProduct(id, IncrementQty) {
+                var value = $("#itemquantity" + id).val();
+
+                if (value > 0) {
+                    var newValue = parseInt(value) - IncrementQty;
+                    $("#itemquantity" + id).val(newValue);
+
+                    if (newValue > 0) {
+                        $("#quantitySelectorAmount_" + id).html(newValue);
+                        $("#itemquantity" + id).val(newValue);
+                    }
+
+                    if (newValue == 0 && value <= 3) {
+                        $("#quantitySelectorMinus_" + id).css("opacity", "0.5");
+                    }
+                    $(".ButtonsaddToCart").addClass("disabledContent");
+                    $.ajax({
+                        type: 'POST',
+                        async: true,
+                        url: "@Url.Action("UpdateCartItem", "ShoppingCart")",
+                        data: $("#shopping-cart-form").serialize(),
+                        dataType: 'json',
+                        success: function (data) {
+
+                            if (newValue <= 0) {
+                                $("#ItemProd_" + id).remove();
+                                $('#SubTotal').html("");
+                                $("#TotalItemMini").html("0");
+                                $("#TotalProducts").html("(0)");
+                            }
+                            if (data.TotalProducts == 0) {
+                                $("#TotalShoppingCartItems").html("(0)");
+                                $("#flyout-cart").html('<div class="mini-shopping-cart"><div class="count">You have no items in your shopping cart.</div></div>');
+                            } else {
+                                if (data.SubTotal != null) {
+                                    $("#SubTotal").html("");
+                                    $("#SubTotal").html(data.SubTotal);
+
+                                    $("#TotalProducts").html("");
+                                    $("#TotalProducts").html(data.TotalProducts + " item(s)");
+
+                                    if ($("#TotalShoppingCartItems")) {
+                                        $("#TotalShoppingCartItems").html("");
+                                        $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                                    }
+                                }
+                            }
+                            $(".ButtonsaddToCart").removeClass("disabledContent");
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            // alert('Failed to update cart');
+                        }
+                    });
+                }
+            }
+
+    function updateProductsCart(id, validIncrement, IncrementQuantity, quantityMessage, oldValue) {
+        var value = $("#itemquantity" + id).val();
+
+        if (validIncrement == true) {
+            var value2 = $(".qty-input_quick").val();
+
+            var numero = value / IncrementQuantity;
+            if (Number.isInteger(numero)) {
+                var newValue = parseInt(value);
+                if (newValue == 0) {
+                    $("#quantitySelectorMinus_" + id).css("opacity", "0.5");
+                }
+                //$(".ButtonsaddToCart").addClass("disabledContent");
+                // $("#itemquantity" + id).addClass("disabledContent");
+
+                //var data = {
+                //    'updatecart': "Update wishlist"
+                //};
+
+                //data = $("#shopping-cart-form-sumary").serialize() + '&' + $.param(data);
+                //$(".ButtonsaddToCart").addClass("disabledContent");
+                $.ajax({
+                    type: 'POST',
+                    async: true,
+                    url: "@Url.Action("UpdateCartItem", "ShoppingCart")",
+                    data: $("#shopping-cart-form").serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+
+                        if (newValue <= 0) {
+                            $("#ItemProd_" + id).remove();
+                            $('#SubTotal').html("");
+                            $("#TotalItemMini").html("0");
+                            $("#TotalProducts").html("(0)");
+                        }
+                        if (data.TotalProducts == 0) {
+                            $("#TotalShoppingCartItems").html("(0)");
+                            $("#flyout-cart").html('<div class="mini-shopping-cart"><div class="count">You have no items in your shopping cart.</div></div>');
+                        } else {
+                            if (data.SubTotal != null) {
+                                $("#SubTotal").html("");
+                                $("#SubTotal").html(data.SubTotal);
+
+                                $("#TotalProducts").html("");
+                                $("#TotalProducts").html(data.TotalProducts + " item(s)");
+
+                                if ($("#TotalShoppingCartItems")) {
+                                    $("#TotalShoppingCartItems").html("");
+                                    $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                                }
+                            }
+                        }
+                        //$("#itemquantity" + id).addClass("disabledContent");
+                        //  $(".ButtonsaddToCart").removeClass("disabledContent");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        // alert('Failed to update cart');
+                    }
+                });
+            
+            } else {
+
+                $("#itemquantity" + id).val(oldValue);
+
+                //$("#addtocart").prop('disabled', true);
+            }
+        } else {
+            var newValue = parseInt(value);
+            if (newValue == 0) {
+                $("#quantitySelectorMinus_" + id).css("opacity", "0.5");
+            }
+            //$(".ButtonsaddToCart").addClass("disabledContent");
+            // $("#itemquantity" + id).addClass("disabledContent");
+
+            //var data = {
+            //    'updatecart': "Update wishlist"
+            //};
+
+            //data = $("#shopping-cart-form-sumary").serialize() + '&' + $.param(data);
+            //$(".ButtonsaddToCart").addClass("disabledContent");
+            $.ajax({
+                type: 'POST',
+                async: true,
+                url: "@Url.Action("UpdateCartItem", "ShoppingCart")",
+                data: $("#shopping-cart-form").serialize(),
+                dataType: 'json',
+                success: function (data) {
+
+                    if (newValue <= 0) {
+                        $("#ItemProd_" + id).remove();
+                        $('#SubTotal').html("");
+                        $("#TotalItemMini").html("0");
+                        $("#TotalProducts").html("(0)");
+                    }
+                    if (data.TotalProducts == 0) {
+                        $("#TotalShoppingCartItems").html("(0)");
+                        $("#flyout-cart").html('<div class="mini-shopping-cart"><div class="count">You have no items in your shopping cart.</div></div>');
+                    } else {
+                        if (data.SubTotal != null) {
+                            $("#SubTotal").html("");
+                            $("#SubTotal").html(data.SubTotal);
+
+                            $("#TotalProducts").html("");
+                            $("#TotalProducts").html(data.TotalProducts + " item(s)");
+
+                            if ($("#TotalShoppingCartItems")) {
+                                $("#TotalShoppingCartItems").html("");
+                                $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                            }
+                        }
+                    }
+                    //$("#itemquantity" + id).addClass("disabledContent");
+                    //  $(".ButtonsaddToCart").removeClass("disabledContent");
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // alert('Failed to update cart');
+                }
+            });
+        }
+
+    }
+
+</script>
+

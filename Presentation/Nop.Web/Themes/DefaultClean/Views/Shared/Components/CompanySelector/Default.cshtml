@@ -1,0 +1,26 @@
+﻿@model CompanySelectorModel
+
+@inject Nop.Core.IWebHelper webHelper
+
+@if (Model.AvailableCompanies.Count > 1)
+{
+    <div class="row">
+        <div class="wop col-12 col-lg-4 d-flex text-company-home-version-mobile">
+            <span class="company my-auto">Company: &emsp;</span>
+        </div>
+        <div class="wop col-12 col-lg-8">
+            <div class="currency-selector">
+                @{
+                    var returnUrl = webHelper.GetRawUrl(Context.Request);
+                    var companies = Model.AvailableCompanies.Select(x => new SelectListItem
+                    {
+                        Text = x.CompanyName,
+                        Value = Url.RouteUrl("ChangeCompany", new { customercompany = x.Id, returnUrl }, webHelper.CurrentRequestProtocol),
+                        Selected = x.Id.Equals(Model.CurrentCompanyId)
+                    });
+                    <select class="select-company-home-version-mobile" id="customerCompany" name="customerCompany" onclick="updateChar();" asp-items="@companies" onchange="setLocation(this.value);" aria-label="@T("Company.Selector.Label")"></select>
+                }
+            </div>
+        </div>
+    </div>
+}

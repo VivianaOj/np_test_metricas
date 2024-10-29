@@ -1,0 +1,1166 @@
+@model ShoppingCartModel
+@using Nop.Core
+@using Nop.Services.Helpers
+@using Nop.Core.Domain.Orders
+@using Nop.Core.Domain.Tax
+@inject IWebHelper webHelper
+@inject IWorkContext workContext
+@inject OrderSettings orderSettings
+@using System.Text.Encodings.Web;
+@using Microsoft.AspNetCore.Html;
+
+@inject IUserAgentHelper userAgentHelper
+@{
+
+    var outstock = false;
+    @if (Model.OrderReviewData != null)
+    {
+        @if (Model.OrderReviewData.CustomValues == null)
+        {
+            Model.OrderReviewData.CustomValues = new Dictionary<string, object>();
+        }
+
+        Model.OrderReviewData.CustomValues.Add("IsEditable", Model.IsEditable);
+    }
+
+}
+
+
+<script type="text/javascript" src="../Themes/DefaultClean/Content/js/addcart.js"></script>
+
+<div id="div-cart-version-mobile">
+    <form asp-route="ShoppingCart" method="post" enctype="multipart/form-data" id="s">
+        <div class="row">
+            <div class="col-12 cart-zone-nitems-mobile">
+                <div class="row">
+                    <div class="col-12 cart-zone-nitems-title-mobile">
+                        @if (Model.TotalProducts == 0)
+                        {
+                            @T("ShoppingCart.Mini.NoItems")
+                        }
+                        else
+                        {
+                            @Html.Raw(string.Format("{0}", $"<a href=\"{Url.RouteUrl("ShoppingCart")}\"> <span id='O_TotalProducts'>{string.Format(T("ShoppingCart.Mini.Items").Text, Model.TotalProducts)}</span> </a>"))
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        @foreach (var item in Model.Items)
+        {
+            var IncrementQuantity = 1;
+
+            if (item.IncrementQuantity > 1)
+            {
+                IncrementQuantity = item.IncrementQuantity;
+            }
+
+            <div class="row item-cart-zone" style="margin-bottom: 5px !important; ">
+                <div class="col-12 cart-zone-nitems-mobile">
+                    <div class="row cart-zone-items-mobile">
+                        <div class="col-12 wop">
+                            <div class="row" style="border-bottom: 1px solid #b0bec5;">
+                                <div class="col-4">
+                                    <a href="@item.ProductSeName"><img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" data-src="@item.Picture.ImageUrl"></a>
+                                </div>
+                                <div class="col-8 cart-items-title-mobile">
+                                    <a href="@item.ProductSeName" style="color: #607D8B !important;">@item.ProductName</a>
+                                    @if (item.OutStock)
+                                    {
+                                        <div class="cart-items-quantity-mobile cart-items-warning-mobile">@T("Product.outStok")</div>
+                                    }
+                                    @if (item.UnShippable)
+                                    {
+                                        <div class="cart-items-quantity-mobile cart-items-warning-mobile">@T("Product.UnShippable")</div>
+                                    }
+                                    <div class="cart-items-quantity-mobile">Quantity: <b><span id="quantity-version-mobile@(item.Id)">@item.Quantity</span></b></div>
+                                    <div class="cart-items-quantity-mobile">Price: <b><span id="quantity-version-mobile@(item.Id)">@item.UnitPrice</span></b></div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 wop">
+                            <div class="row">
+                                <div class="col-6 ">
+                                    <b>Total</b>
+                                </div>
+                                <div class="col-6 cart-items-total-mobile">
+                                    @if (!string.IsNullOrEmpty(item.Discount))
+                                    {
+                                        <div class="cart-items-quantity-mobile">
+                                            @T("ShoppingCart.ItemYouSave", item.Discount)
+                                        </div>
+                                    }
+                                    <b>
+                                        <span id="O_SubTotal_mobile@(item.Id)">
+                                            @item.SubTotal
+                                        </span>
+                                    </b>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (!Model.IsFromCheckout)
+                {
+                    <div class="col-12 cart-zone-nitems-mobile zone-action-cart-mobile">
+                        <div class="row">
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="cart-items-trash-mobile">
+                                            <center><i class="nn- nn-trash" style="font-size:1.5rem; cursor:pointer" aria-hidden="true" onclick="$('#removefromcart@(item.Id)').prop('checked', true); $('#buttonUpdateCart').click();"></i></center>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <div class="row">
+                                            <div class="col-4 wop">
+                                                @if (item.IncrementQuantity > 1)
+                                                {
+                                                    <img id="O_quantitySelectorMinus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', false, true,  @IncrementQuantity, '@item.quantityMessage', @item.Quantity, true); getValueQuantity('@(item.Id)'); " data-src="/Themes/DefaultClean/Content/images/minus.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/minus.svg">
+                                                }
+                                                else
+                                                {
+                                                    <img id="O_quantitySelectorMinus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', false, false, 1, '', 1, true); getValueQuantity('@(item.Id)');" data-src="/Themes/DefaultClean/Content/images/minus.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/minus.svg">
+                                                }
+                                            </div>
+
+                                            @if (item.IncrementQuantity > 1)
+                                            {
+                                                <div class="col-4 wop">
+                                                    <b><input id="O_itemquantity_mobile@(item.Id)" type="text" pattern="[0-9]+" min="0" class="cart-items-qty-input-mobile" value="@(item.Quantity)" onchange="O_UpdateProducts('@(item.Id)', false, true, 0, '', @item.Quantity, true); getValueQuantity('@(item.Id)');" disabled /></b>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="col-4 wop">
+                                                    <b><input id="O_itemquantity_mobile@(item.Id)" type="text" pattern="[0-9]+" min="0" class="cart-items-qty-input-mobile" value="@(item.Quantity)" onchange="O_UpdateProducts('@(item.Id)', false, true, 0, '', @item.Quantity, true); getValueQuantity('@(item.Id)');" disabled /></b>
+                                                </div>
+                                            }
+
+                                            <div class="col-4 wop">
+                                                @if (item.IncrementQuantity > 1)
+                                                {
+                                                    <img id="O_quantitySelectorPlus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', true, true, @IncrementQuantity, '@item.quantityMessage', @item.Quantity, true); getValueQuantity('@(item.Id)');" data-src="/Themes/DefaultClean/Content/images/more.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/more.svg">
+
+                                                }
+                                                else
+                                                {
+                                                    <img id="O_quantitySelectorPlus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', true, false, 1, '', 1, true); getValueQuantity('@(item.Id)');" data-src="/Themes/DefaultClean/Content/images/more.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/more.svg">
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </form>
+</div>
+
+
+
+<div class="row mt-5" id="div-cart-title-version-desktop">
+    <div class="col-12 text-center">
+        @if (Model.TotalProducts == 0)
+        {
+            @T("ShoppingCart.Mini.NoItems")
+        }
+        else
+        {
+            @*@Html.Raw(string.Format(T("ShoppingCart.Mini.ItemsText").Text, $"<a href=\"{Url.RouteUrl("ShoppingCart")}\"> <span id='O_TotalProducts'>{string.Format(T("ShoppingCart.Mini.Items").Text, Model.TotalProducts)}</span> </a>"))*@
+            @Html.Raw(string.Format("{0}", $"<a href=\"{Url.RouteUrl("ShoppingCart")}\"> <span id='O_TotalProducts'>{string.Format(T("ShoppingCart.Mini.Items").Text, Model.TotalProducts)}</span> </a>"))
+        }
+        <hr style="border-top: 1px solid #B0BEC5 " />
+    </div>
+</div>
+
+<br />
+<div class="order-summary-content">
+
+    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderSummaryContentBefore })
+    @*@await Html.PartialAsync("_OrderReviewData", Model.OrderReviewData)*@
+    @await Html.PartialAsync("_OrderReviewDataMobile", Model)
+    @if (Model.Items.Count > 0)
+    {
+        if (Model.Warnings.Count > 0)
+        {
+            <div class="message-error">
+                <ul>
+                    @foreach (var warning in Model.Warnings)
+                    {
+                        <li>@warning</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <form asp-route="ShoppingCart" method="post" enctype="multipart/form-data" id="shopping-cart-form-sumary">
+            <div class="row justify-content-center">
+                <div class="col-lg-8" id="tableShoppingCart">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @if (!Model.IsFromCheckout)
+                            {
+                                <table class="table text-payment-info">
+                                    <thead>
+                                        <tr>
+                                            @if (Model.IsEditable)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @*@T("ShoppingCart.Remove")*@
+                                                </th>
+                                            }
+                                            <th class="remove-from-cart table-order-sumary-tr">
+                                            </th>
+                                            @if (Model.ShowSku)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @T("ShoppingCart.SKU")
+                                                </th>
+                                            }
+                                            @if (Model.ShowProductImages)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                </th>
+                                            }
+                                            <th class="remove-from-cart table-order-sumary-tr">
+                                                @T("ShoppingCart.Product(s)")
+                                            </th>
+                                            @if (Model.ShowVendorName)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @T("ShoppingCart.VendorName")
+                                                </th>
+                                            }
+                                            <th class="remove-from-cart table-order-sumary-tr" style=" text-align: right;">
+                                                @T("ShoppingCart.UnitPrice")
+                                            </th>
+                                            <th class="remove-from-cart table-order-sumary-tr" style=" text-align: center;">
+                                                @T("ShoppingCart.Quantity")
+                                            </th>
+                                            <th class="remove-from-cart table-order-sumary-tr" style=" text-align: right;">
+                                                @T("ShoppingCart.ItemTotal")
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            <tr id="O_ItemProd_@(item.Id)">
+                                                @if (Model.IsEditable)
+                                                {
+                                                    <td class="remove-from-cart d-none">
+                                                        @if (item.DisableRemoval)
+                                                        {
+                                                            <text>&nbsp;</text>
+                                                        }
+                                                        else
+                                                        {
+                                                            <input type="checkbox" name="removefromcart" id="removefromcart@(item.Id)" value="@(item.Id)" />
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <i class="nn- nn-trash cursorPointer" style="font-size:1.5rem" aria-hidden="true" style="cursor:pointer" onclick="$('#removefromcart@(item.Id)').prop('checked', true); $('#buttonUpdateCart').click();"></i>
+                                                    </td>
+                                                }
+                                                <td class="sku">
+                                                </td>
+                                                @if (Model.ShowSku)
+                                                {
+                                                    <td class="sku">
+                                                        @*<label class="td-title">@T("ShoppingCart.SKU"):</label>*@
+                                                        <span class="sku-number">@item.Sku</span>
+                                                    </td>
+                                                }
+                                                @if (Model.ShowProductImages)
+                                                {
+                                                    <td class="product-picture">
+                                                        <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })">
+                                                            <img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" class="img-fluid" />
+                                                        </a>
+                                                    </td>
+                                                }
+                                                <td class="product">
+                                                    <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })" class="product-name product-order-summary">@item.ProductName</a>
+                                                    <br />
+                                                    <span class="category-label">@item.CategoryName</span>
+
+
+                                                    @if (item.OutStock)
+                                                    {
+                                                        outstock = true;
+                                                        <div class="message-error" style="font-weight: 900;">
+                                                            <ul>
+                                                                @T("Product.outStok")&nbsp;
+                                                            </ul>
+                                                        </div>
+
+
+                                                    }
+
+                                                    @if (item.UnShippable)
+                                                    {
+                                                        <div class="message-error" style="font-weight: 900;">
+                                                            <ul>
+                                                                @T("Product.UnShippable")
+                                                            </ul>
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                                    {
+                                                        <div class="attributes">
+                                                            @Html.Raw(item.AttributeInfo)
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.RecurringInfo))
+                                                    {
+                                                        <div class="recurring-info">
+                                                            @Html.Raw(item.RecurringInfo)
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.RentalInfo))
+                                                    {
+                                                        <div class="rental-info">
+                                                            @Html.Raw(item.RentalInfo)
+                                                        </div>
+                                                    }
+                                                    @if (Model.IsEditable && item.AllowItemEditing)
+                                                    {
+                                                        var editCartItemUrl = Url.RouteUrl("Product", new { SeName = item.ProductSeName }, webHelper.CurrentRequestProtocol);
+                                                        editCartItemUrl = webHelper.ModifyQueryString(editCartItemUrl, "updatecartitemid", item.Id.ToString());
+                                                        <div class="edit-item">
+                                                            <a href="@editCartItemUrl">@T("Common.Edit")</a>
+                                                        </div>
+                                                    }
+                                                    @if (item.Warnings.Count > 0)
+                                                    {
+                                                        <div class="message-error">
+                                                            <ul>
+                                                                @foreach (var warning in item.Warnings)
+                                                                {
+                                                                    <li>@Html.Raw(warning)</li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                    }
+                                                </td>
+                                                @if (Model.ShowVendorName)
+                                                {
+                                                    <td class="vendor">
+                                                        @*<label class="td-title">@T("ShoppingCart.VendorName"):</label>*@
+                                                        <span class="vendor-name">@item.VendorName</span>
+                                                    </td>
+                                                }
+                                                <td class="unit-price">
+                                                    @if (!string.IsNullOrEmpty(item.OldPrice))
+                                                    {
+                                                        <span class="price old-price text-center" style="color: #E44436 !important;font-weight: 100;">@item.OldPrice <br /></span>
+                                                    }
+                                                    @*<label class="td-title">@T("ShoppingCart.UnitPrice"):</label>*@
+                                                    <span class="product-unit-price product-order-summary" id="UnitPrice_@(item.Id)">@item.UnitPrice</span>
+                                                </td>
+                                                <td class="quantity">
+                                                    @*<label class="td-title">@T("ShoppingCart.Quantity"):</label>*@
+
+                                                    @{
+                                                        var IncrementQuantity = 1;
+
+                                                    }
+                                                    @if (item.IncrementQuantity > 1)
+                                                    {
+                                                        IncrementQuantity = item.IncrementQuantity;
+                                                    }
+
+                                                    @if (Model.IsEditable)
+                                                    {
+                                                        if (item.AllowedQuantities.Count > 0)
+                                                        {
+                                                            <select name="O_itemquantity@(item.Id)" id="O_itemquantity@(item.Id)" class="AllowedQuantities" onchange="incrementProductDetailInfo(this.value, @item.Id)">
+                                                                @foreach (var qty in item.AllowedQuantities)
+                                                                {
+                                                                    <option selected="@qty.Selected" value="@qty.Value">@qty.Value</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="row mx-auto" style="width:250px">
+                                                                <div class="col-md-12">
+                                                                    <div class="row justify-content-end">
+                                                                        <div class="col-3 p-0">
+                                                                            @{ if (item.IncrementQuantity > 1)
+                                                                                {
+                                                                                    <button id="O_quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus" type="button" onclick="O_UpdateProducts('@(item.Id)', false, true,  @IncrementQuantity, '@item.quantityMessage', @item.Quantity, true)" style="float:right">
+                                                                                        <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                                                    </button>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <button id="O_quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus" type="button" onclick="O_UpdateProducts('@(item.Id)', false,false,1,'',1, true)" style="float:right">
+                                                                                        <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                                                    </button>
+                                                                                }
+                                                                            }
+                                                                        </div>
+                                                                        <div class="col-6 p-0">
+                                                                            @{ if (item.IncrementQuantity > 1)
+                                                                                {
+                                                                                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+                                                                                           type="number" maxlength="4" onchange="O_UpdateProducts('@(item.Id)', true,true,@IncrementQuantity, '@item.quantityMessage', @item.Quantity, false)" for="itemquantity@(item.Id)"
+                                                                                           id="O_itemquantity@(item.Id)" name="itemquantity@(item.Id)" class="form-control qty-input product-order-summary"
+                                                                                           value="@(item.Quantity)" style="float: right;  width: 90% !important;margin-top: -10px;" />
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);"
+                                                                                           type="number" maxlength="4" onchange="O_UpdateProducts('@(item.Id)', true,false,1,'',1,false)" for="itemquantity@(item.Id)"
+                                                                                           id="O_itemquantity@(item.Id)" name="itemquantity@(item.Id)" class="form-control qty-input product-order-summary"
+                                                                                           value="@(item.Quantity)" style="float: right;  width: 90% !important;margin-top: -10px;" />
+
+                                                                                }
+                                                                            }
+                                                                            @*<input name="O_itemquantity@(item.Id)" id="O_itemquantity@(item.Id)" type="text" value="@(item.Quantity)" class="qty-input product-order-summary" />*@
+                                                                        </div>
+                                                                        <div class="col-3 p-0">
+                                                                            @{ if (item.IncrementQuantity > 1)
+                                                                                {
+
+                                                                                    <button id="O_quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore" type="button" onclick="O_UpdateProducts('@(item.Id)', true,true, @IncrementQuantity,'@item.quantityMessage', @item.Quantity, true)" style="float:left">
+                                                                                        <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                                                    </button>
+                                                                                }
+                                                                                else
+                                                                                {
+                                                                                    <button id="O_quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore" type="button" onclick="O_UpdateProducts('@(item.Id)', true,false,1,'',1, true)" style="float:left">
+                                                                                        <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                                                    </button>
+                                                                                }
+                                                                            }
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="product-unit-price product-order-summary">@item.Quantity</span>
+                                                    }
+                                                </td>
+                                                <td class="subtotal">
+                                                    @*<label class="td-title">@T("ShoppingCart.ItemTotal"):</label>*@
+                                                    <div class="row">
+                                                        <div class="col-12 d-flex">
+                                                            <div class="my-auto">
+                                                                <span id="O_SubTotal@(item.Id)" class="product-unit-price product-order-summary colorGeneralTextRed">@item.SubTotal</span>
+                                                                <br />
+                                                                @if (!string.IsNullOrEmpty(item.Discount))
+                                                                {
+                                                                    <div class="discount" id="O_ItemDiscount@(item.Id)">
+                                                                        @T("ShoppingCart.ItemYouSave", item.Discount)
+                                                                    </div>
+                                                                    <br />
+                                                                    if (item.MaximumDiscountedQty.HasValue)
+                                                                    {
+                                                                        <div class="discount-additional-info">
+                                                                            @T("ShoppingCart.MaximumDiscountedQty", item.MaximumDiscountedQty.Value)
+                                                                        </div>
+                                                                    }
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </td>
+                                            </tr>
+                                        }
+
+
+
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                <div class="row justify-content-center mt-4">
+                                    <div class="col-md-12">
+                                        <table class="table borderless">
+                                            <tr>
+                                                <th class="text-left">
+                                                    @T("ShoppingCart.Product(s)")
+                                                </th>
+                                                <th class="text-center">
+                                                    @T("ShoppingCart.UnitPrice")
+                                                </th>
+                                                <th class="text-center">
+                                                    @T("ShoppingCart.Quantity")
+                                                </th>
+                                                <th class="text-right">
+                                                    @T("ShoppingCart.ItemTotal")
+                                                </th>
+                                            </tr>
+                                            @foreach (var item in Model.Items)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })">
+                                                                    <img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" class="img-fluid" />
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-12">
+                                                                <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })" class="product-name product-order-summary">@item.ProductName</a>
+                                                                <br />
+                                                                <span class="category-label">@item.CategoryName</span>
+                                                                @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                                                {
+                                                                    <div class="attributes">
+                                                                        @Html.Raw(item.AttributeInfo)
+                                                                    </div>
+                                                                }
+                                                                @if (!string.IsNullOrEmpty(item.RecurringInfo))
+                                                                {
+                                                                    <div class="recurring-info">
+                                                                        @Html.Raw(item.RecurringInfo)
+                                                                    </div>
+                                                                }
+                                                                @if (!string.IsNullOrEmpty(item.RentalInfo))
+                                                                {
+                                                                    <div class="rental-info">
+                                                                        @Html.Raw(item.RentalInfo)
+                                                                    </div>
+                                                                }
+                                                                @if (Model.IsEditable && item.AllowItemEditing)
+                                                                {
+                                                                    var editCartItemUrl = Url.RouteUrl("Product", new { SeName = item.ProductSeName }, webHelper.CurrentRequestProtocol);
+                                                                    editCartItemUrl = webHelper.ModifyQueryString(editCartItemUrl, "updatecartitemid", item.Id.ToString());
+                                                                    <div class="edit-item">
+                                                                        <a href="@editCartItemUrl">@T("Common.Edit")</a>
+                                                                    </div>
+                                                                }
+                                                                @if (item.Warnings.Count > 0)
+                                                                {
+                                                                    <div class="message-error">
+                                                                        <ul>
+                                                                            @foreach (var warning in item.Warnings)
+                                                                            {
+                                                                                <li>@Html.Raw(warning)</li>
+                                                                            }
+                                                                        </ul>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="product-unit-price product-order-summary" id="UnitPrice_@item.Id">@item.UnitPrice</span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="product-unit-price product-order-summary">@item.Quantity</span>
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <div class="row @Html.Raw(!string.IsNullOrEmpty(item.Discount)? "mt-4":"")">
+                                                            <div class="col-12">
+                                                                <div class="row">
+                                                                    <div class="col-12 text-right">
+                                                                        <span id="O_SubTotal@(item.Id)" class="product-unit-price product-order-summary colorGeneralTextRed text-right" style="width:100% !important">@item.SubTotal</span>
+
+                                                                        @if (!string.IsNullOrEmpty(item.Discount))
+                                                                        {
+                                                                            <div class="row">
+                                                                                <div class="col-12">
+                                                                                    <div class="discount">
+                                                                                        @T("ShoppingCart.ItemYouSave", item.Discount)
+                                                                                    </div>
+                                                                                    <br />
+                                                                                    @if (item.MaximumDiscountedQty.HasValue)
+                                                                                    {
+                                                                                        <div class="discount-additional-info">
+                                                                                            @T("ShoppingCart.MaximumDiscountedQty", item.MaximumDiscountedQty.Value)
+                                                                                        </div>
+                                                                                    }
+                                                                                </div>
+                                                                            </div>
+
+                                                                        }
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+
+                                        </table>
+                                    </div>
+                                </div>
+
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            @if (Model.IsEditable && Model.Items.Count > 0 && Model.DisplayTaxShippingInfo)
+            {
+                var inclTax = workContext.TaxDisplayType == TaxDisplayType.IncludingTax;
+                //tax info is already included in the price (incl/excl tax). that's why we display only shipping info here
+                //of course, you can modify appropriate locales to include VAT info there
+                <div class="tax-shipping-info">
+                    @T(inclTax ? "ShoppingCart.TaxShipping.InclTax" : "ShoppingCart.TaxShipping.ExclTax", Url.RouteUrl("Topic", new { SeName = Html.GetTopicSeName("shippinginfo") }))
+                </div>
+            }
+
+            <div class="cart-discount mt-5">
+                <div class="row">
+                    <div class="col-lg-12 wop">
+                        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderSummaryCartFooter })
+                        @if (Model.IsEditable)
+                        {
+                            <div class="cart-collaterals">
+                                <div class="deals">
+                                    @await Html.PartialAsync("_DiscountBox", Model.DiscountBox)
+                                    @await Html.PartialAsync("_GiftCardBox", Model.GiftCardBox)
+                                    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderSummaryContentDeals })
+                                </div>
+                            </div>
+                        }
+
+                        @if (Model.TotalProducts != 0)
+                        {
+                            <div class="row mt-5 clearshopping-mobile" id="ClearShopping">
+                                <div class="col-12 text-center wop ">
+                                    <div class="col-lg-6" style="float: left; padding: 0;">
+                                        <a style="float: left; color: #e44436 !important; width: 300px !important; background: none !important; BORDER: NONE !important; text-decoration: underline; padding: 0; margin: 0;" id="ClearShoppingCart" name="ClearShoppingCart"
+                                           class="button-2 continue-shopping-button boton-continuar boton-continuar-summary text-center" onclick="ClearShoppingCart()">
+                                            @T("Checkout.clearShopping")
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-5 text-center">
+                    @if (Model.IsEditable)
+                    {
+                        <div class="row mb-3">
+                            <div class="col-lg-12">
+                                <center>
+                                    @*<button name="continueshopping" value="@T("ShoppingCart.ContinueShopping")" class="button-2 continue-shopping-button boton-continuar boton-continuar-summary text-center" type="submit">
+                                            <center style="width:100%">
+                                                <i class="nn- nn-shopping-bag footer-icon-size icon-blue"></i>&nbsp;&nbsp;@T("ShoppingCart.ContinueShopping")
+                                            </center>
+
+                                        </button>*@
+                                </center>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-12">
+                                <input id="buttonUpdateCart" type="submit" name="updatecart" value="@T("ShoppingCart.UpdateCart")" class="button-1 checkout-button boton-checkout boton-updatecart-summary d-none" />
+                            </div>
+                        </div>
+
+                    }
+                    @if (Model.IsEditable)
+                    {
+                        @await Html.PartialAsync("_CheckoutAttributes", Model)
+                    }
+                    @await Component.InvokeAsync("SelectedCheckoutAttributes")
+                </div>
+
+            </div>
+            @*@if (Model.IsEditable)
+                {
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="cart-estimate-shipping">
+                                @await Component.InvokeAsync("EstimateShipping")
+                            </div>
+                        </div>
+                    </div>
+                }*@
+            <div class="cart-footer cart-summary-footer">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-lg-8 wop">
+                        <center>
+                            <div class="totals">
+                                @await Component.InvokeAsync("OrderTotals", new { isEditable = Model.IsEditable })
+                                @if (Model.IsEditable)
+                                {
+                                    if (!string.IsNullOrEmpty(Model.MinOrderSubtotalWarning))
+                                    {
+                                        <div class="min-amount-warning">
+                                            @Model.MinOrderSubtotalWarning
+                                        </div>
+                                    }
+                                }
+                                @if (Model.IsEditable)
+                                {
+                                    if (Model.TermsOfServiceOnShoppingCartPage)
+                                    {
+                                        <div id="terms-of-service-warning-box" title="@T("Checkout.TermsOfService")" style="display: none;">
+                                            <p>@T("Checkout.TermsOfService.PleaseAccept")</p>
+                                        </div>
+                                        <div class="terms-of-service">
+                                            <div class="row">
+                                                <div class="col-md-3 col-lg-2 col-xl-1 d-flex">
+                                                    <input id="termsofservice" type="checkbox" class="my-auto" name="termsofservice" />
+                                                </div>
+                                                <div class="col-md-9 col-lg-10 col-xl-11 d-flex">
+
+                                                    <label for="termsofservice" class="my-auto">
+                                                        @T("Checkout.TermsOfService.IAccept")
+                                                        <a class="read" id="read-terms" target="_blank" href="@Url.RouteUrl("Topic", new { SeName = Html.GetTopicSeName("conditionsofuse") })">@T("Checkout.TermsOfService.ReadLink")</a>
+                                                    </label>
+                                                    @if (Model.TermsOfServicePopup)
+                                                    {
+                                                        <a class="read" id="read-terms">@T("Checkout.TermsOfService.Read")</a>
+                                                        <script asp-location="Footer">
+                                            $(document).ready(function() {
+                                                $('#read-terms').on('click',
+                                                    function(e) {
+                                                        e.preventDefault();
+                                                        displayPopupContentFromUrl(
+                                                            '@Url.RouteUrl("TopicPopup", new { SystemName = "conditionsofuse" })',
+                                                            '@T("Checkout.TermsOfService")');
+                                                    });
+                                            });
+                                                        </script>
+                                                    }
+                                                    else
+                                                    {
+                                                        @*<a class="read" id="read-terms" href="@Url.RouteUrl("Topic", new {SeName = Html.GetTopicSeName("conditionsofuse") })">@T("Checkout.TermsOfService.Read")</a>*@
+                                                    }
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+                                    <div class="checkout-buttons">
+                                        @if (string.IsNullOrEmpty(Model.MinOrderSubtotalWarning) && !Model.HideCheckoutButton)
+                                        {
+                                            <script asp-location="Footer">
+                                                $(document).ready(function () {
+                                                    $('#checkout').on('click', function () {
+                                                        //terms of service
+                                                        var termOfServiceOk = true;
+                                                        if ($('#termsofservice').length > 0) {
+                                                            //terms of service element exists
+                                                            if (!$('#termsofservice').is(':checked')) {
+                                                                $("#terms-of-service-warning-box").dialog();
+                                                                termOfServiceOk = false;
+                                                            } else {
+                                                                termOfServiceOk = true;
+                                                            }
+                                                        }
+                                                        return termOfServiceOk;
+                                                    });
+                                                });
+                                            </script>
+                                            if (orderSettings.CheckoutDisabled)
+                                            {
+                                                <div class="checkout-disabled">
+                                                    @T("Checkout.Disabled")
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="row justify-content-center">
+                                                    <div class="col-12 wop col-lg-6 ">
+                                                        <button name="continueshopping" value="@T("ShoppingCart.ContinueShopping")" class="button-2 continue-shopping-button boton-continuar boton-continuar-summary text-center" type="submit" style="width:100% !important">
+                                                            <center style="width:100%">
+                                                                <i class="nn- nn-shopping-bag footer-icon-size icon-blue"></i>&nbsp;&nbsp;@T("ShoppingCart.ContinueShopping")
+                                                            </center>
+
+                                                        </button>
+                                                    </div>
+                                                    @if (!outstock)
+                                                    {
+                                                        <div class="col-12 wop col-lg-6">
+                                                            <button type="submit" id="checkout" name="checkout" value="checkout" class="button-1 checkout-button boton-checkout boton-checkout-summary">
+                                                                @T("Checkout.Button")
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="col-12 wop col-lg-6">
+                                                            <a id="checkout" name="checkout" value="checkout" class="button-1 checkout-button boton-checkout boton-checkout-summary" style="opacity:0.5">
+                                                                @T("Checkout.Button")
+                                                            </a>
+                                                        </div>
+                                                    }
+
+                                                </div>
+
+                                                <br />
+
+                                                @if (outstock)
+                                                {
+                                                    <div class="value-summary" style=" color: #e4434b!important; font-weight:900;    font-size: 0.9rem !important;">
+                                                        @T("Checkout.messageOutStock")
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    </div>
+
+                                    <div class="addon-buttons">
+                                        @*Payment method buttons (e.g. GoogleCheckoutButton, Paypal Express)*@
+                                        @foreach (var pm in Model.ButtonPaymentMethodViewComponentNames)
+                                        {
+                                            @await Component.InvokeAsync(pm)
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </center>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div>
+            <div class="w-100 colorGeneralBackgroundGray pt-5 pb-5 mt-5 d-none" id="divRelatedProductsBox">
+                @{
+                    IHtmlContent productPurchased = HtmlString.Empty;
+                    productPurchased = await Component.InvokeAsync("ProductsAlsoPurchased", new { productsIds = Model.Items.Select(x => x.ProductId).ToList() });
+
+                    IHtmlContent RelatedProducts = HtmlString.Empty;
+                    RelatedProducts = await Component.InvokeAsync("RelatedProducts", new { productsIds = Model.Items.Select(x => x.ProductId).ToList() });
+                    bool ShowInfoProductAlso = false;
+
+                    if (string.IsNullOrEmpty(productPurchased.ToHtmlString()))
+                    {
+                        ShowInfoProductAlso = true;
+                    }
+
+                    @if (!ShowInfoProductAlso)
+                    {
+                        <div class="row justify-content-center mb-5">
+                            <div class="col-md-4 text-center title-related-products-product-box">
+                                @T("Products.AlsoPurchased")
+                            </div>
+                        </div>
+
+                        @productPurchased
+                    }
+                    else
+                    {
+                        <div class="row justify-content-center mb-5">
+                            <div class="col-md-4 text-center title-related-products-product-box">
+                                @T("Products.RelatedProducts")
+                            </div>
+                        </div>
+
+                        @RelatedProducts
+                    }
+
+                }
+
+
+            </div>
+            <div class="buttons">
+
+            </div>
+        </div>
+
+
+    }
+    else
+    {
+        @*<div class="no-data">
+                @T("ShoppingCart.CartIsEmpty")
+            </div>*@
+    }
+</div>
+
+<script>
+      function ClearShoppingCart() {
+        $.ajax({
+            type: 'POST',
+            async: true,
+            url: "@(Url.Action("ClearShoppingCart", "ShoppingCart"))",
+            data: $("#shopping-cart-form-sumary").serialize(),
+            success: function (data, textStatus, jqXHR) {
+                if (data == "1") {
+                    window.location.replace("/")
+                }
+            }
+        });
+    }
+
+
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var url = window.location.href;
+        if (url.includes("onepagecheckout")) {
+            $("#ProductAlsoPurchaseSection").hide();
+        }
+        else {
+            $("#ProductAlsoPurchaseSection").show();
+        }
+    });
+
+
+    function incrementProductDetailInfo(idProd, id) {
+
+        var value = idProd;
+        var newValue = parseInt(value);
+        var NewValue2 = parseInt(value) + parseInt(IncrementQuantity);
+
+        if (newValue > 0) {
+            $("#itemquantity" + id).val(newValue);
+            $("#O_itemquantity" + id).val(NewValue2);
+        }
+
+
+
+                $.ajax({
+                    type: 'POST',
+                    async: true,
+                    url: "@Url.Action("UpdateCartItem", "ShoppingCart")",
+                    data: $("#shopping-cart-form").serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+
+                        location.reload();
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                       // alert('Failed to update cart');
+                    }
+                });
+
+                }
+
+    function UpdateProductsCart(id, increment, validIncrement, IncrementQuantity, quantityMessage, oldValue) {
+        var value = $("#O_itemquantity" + id).val();
+        var NewValue = value + IncrementQuantity;
+
+
+        if (validIncrement == true) {
+
+            $("#O_itemquantity" + id).val(NewValue);
+
+            var numero = value / IncrementQuantity;
+            if (Number.isInteger(numero)) {
+                var newValue = parseInt(value);
+                if (newValue == 0) {
+                    $("#O_quantitySelectorMinus_" + id).css("opacity", "0.5");
+                }
+              
+                $.ajax({
+                    type: 'POST',
+                    async: true,
+                    url: "/UpdateCartItem",
+                    data: $("#shopping-cart-form-sumary").serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+                       
+
+                        if (data.TotalProducts != null) {
+                            $("#O_TotalProducts").html("");
+                            $("#O_TotalProducts").html(data.TotalProducts + " item(s)");
+                        }
+
+                        if ($("#TotalShoppingCartItems")) {
+                            $("#TotalShoppingCartItems").html("");
+                            $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                        }
+
+                        if (data.TotalProducts == null || data.TotalProducts == 0) {
+                            location.reload();
+                        }
+
+                        if (newValue <= 0) {
+                            $("#O_ItemProd_" + id).remove();
+                        }
+
+                        var itemTotal = data.Items.find(x => x.Id == id);
+                        if (itemTotal != undefined) {
+                            if (itemTotal.SubTotal != null) {
+                                $("#O_SubTotal" + id).html("");
+                                $("#O_SubTotal" + id).html(itemTotal.SubTotal)
+
+                                $("#O_SubTotal_mobile" + id).html("");
+                                $("#O_SubTotal_mobile" + id).html(itemTotal.SubTotal)
+                            }
+
+                            if (itemTotal.Discount != null) {
+                                $("#O_ItemDiscount" + id).html("");
+                                $("#O_ItemDiscount" + id).html("You save:<br>" + itemTotal.Discount);
+                            }
+
+                            if (data.SubTotal != null) {
+                                $("#O_SubTotal").html("");
+                                $("#O_SubTotal").html(data.SubTotal)
+
+                                $("#O_SubTotal_mobile").html("");
+                                $("#O_SubTotal_mobile").html(data.SubTotal)
+                            }
+                        }
+                        else {
+                            if (data.SubTotal != null) {
+                                $("#O_SubTotal").html("");
+                                $("#O_SubTotal").html(data.SubTotal)
+
+                                $("#O_SubTotal_mobile").html("");
+                                $("#O_SubTotal_mobile").html(data.SubTotal)
+                            }
+                        }
+
+                        var itemUnitPrice = data.Items.find(x => x.Id == id);
+                        if (itemUnitPrice != undefined) {
+                            if (itemUnitPrice.UnitPrice != null) {
+                                $("#UnitPrice_" + id).html("");
+                                $("#UnitPrice_" + id).html(itemUnitPrice.UnitPrice)
+                            }
+
+
+                            if (data.UnitPrice != null) {
+                                $("#UnitPrice_").html("");
+                                $("#UnitPrice_").html(data.UnitPrice)
+                            }
+                        }
+                        else {
+                            if (data.UnitPrice != null) {
+                                $("#UnitPrice_").html("");
+                                $("#UnitPrice_").html(data.UnitPrice)
+                            }
+                        }
+                        //$(".ButtonsaddToCart").removeClass("disabledContent");
+                        //$("#O_itemquantity" + id).addClass("disabledContent");
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        // alert('Failed to update cart');
+                    }
+                });
+            } else {
+                $("#O_itemquantity" + id).val(oldValue);
+
+                //$("#addtocart").prop('disabled', true);
+            }
+        } else {
+
+
+            var newValue = parseInt(value);
+            if (newValue == 0) {
+                $("#O_quantitySelectorMinus_" + id).css("opacity", "0.5");
+            }
+          
+            $.ajax({
+                type: 'POST',
+                async: true,
+                url: "/UpdateCartItem",
+                data: $("#shopping-cart-form-sumary").serialize(),
+                dataType: 'json',
+                success: function (data) {
+                   
+                    if (data.TotalProducts != null) {
+                        $("#O_TotalProducts").html("");
+                        $("#O_TotalProducts").html(data.TotalProducts + " item(s)");
+                    }
+
+                    if ($("#TotalShoppingCartItems")) {
+                        $("#TotalShoppingCartItems").html("");
+                        $("#TotalShoppingCartItems").html("(" + data.TotalProducts + ")");
+                    }
+
+                    if (data.TotalProducts == null || data.TotalProducts == 0) {
+                        location.reload();
+                    }
+
+                    if (newValue <= 0) {
+                        $("#O_ItemProd_" + id).remove();
+                    }
+
+                    var itemTotal = data.Items.find(x => x.Id == id);
+                    if (itemTotal != undefined) {
+                        if (itemTotal.SubTotal != null) {
+                            $("#O_SubTotal" + id).html("");
+                            $("#O_SubTotal" + id).html(itemTotal.SubTotal)
+
+                            $("#O_SubTotal_mobile" + id).html("");
+                            $("#O_SubTotal_mobile" + id).html(itemTotal.SubTotal)
+                        }
+
+                        if (itemTotal.Discount != null) {
+                            $("#O_ItemDiscount" + id).html("");
+                            $("#O_ItemDiscount" + id).html("You save:<br>" + itemTotal.Discount);
+                        }
+
+                        if (data.SubTotal != null) {
+                            $("#O_SubTotal").html("");
+                            $("#O_SubTotal").html(data.SubTotal)
+
+                            $("#O_SubTotal_mobile").html("");
+                            $("#O_SubTotal_mobile").html(data.SubTotal)
+                        }
+                    }
+                    else {
+                        if (data.SubTotal != null) {
+                            $("#O_SubTotal").html("");
+                            $("#O_SubTotal").html(data.SubTotal)
+
+                            $("#O_SubTotal_mobile").html("");
+                            $("#O_SubTotal_mobile").html(data.SubTotal)
+                        }
+                    }
+
+                    var itemUnitPrice = data.Items.find(x => x.Id == id);
+                    if (itemUnitPrice != undefined) {
+                        if (itemUnitPrice.UnitPrice != null) {
+                            $("#UnitPrice_" + id).html("");
+                            $("#UnitPrice_" + id).html(itemUnitPrice.UnitPrice)
+                        }
+
+
+                        if (data.UnitPrice != null) {
+                            $("#UnitPrice_").html("");
+                            $("#UnitPrice_").html(data.UnitPrice)
+                        }
+                    }
+                    else {
+                        if (data.UnitPrice != null) {
+                            $("#UnitPrice_").html("");
+                            $("#UnitPrice_").html(data.UnitPrice)
+                        }
+                    }
+                    //$(".ButtonsaddToCart").removeClass("disabledContent");
+                    //$("#O_itemquantity" + id).addClass("disabledContent");
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // alert('Failed to update cart');
+                }
+            });
+        }
+    }
+</script>
+
+<style>
+    #ProductAlsoPurchaseSection .also-purchased-products-grid .item-box {
+        height: 461px;
+        width: 255px !important;
+    }
+</style>
+<script>
+    function getValueQuantity(id) {
+        $("#quantity-version-mobile" + id).text($("#O_itemquantity_mobile" + id).val());
+    }
+</script>
+

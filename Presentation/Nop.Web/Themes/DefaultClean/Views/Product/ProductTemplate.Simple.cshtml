@@ -1,0 +1,729 @@
+﻿@model ProductDetailsModel
+@using Nop.Core.Domain.Seo;
+@inject Nop.Core.IWebHelper webHelper
+@inject SeoSettings seoSettings
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    Layout = "_ColumnsOne";
+    //title
+    Html.AddTitleParts(!string.IsNullOrEmpty(Model.MetaTitle) ? Model.MetaTitle : Model.Name);
+    //meta
+    Html.AddMetaDescriptionParts(Model.MetaDescription);
+    Html.AddMetaKeywordParts(Model.MetaKeywords);
+    //page class
+    Html.AppendPageCssClassParts("html-product-details-page");
+
+    //canonical URL
+    if (seoSettings.CanonicalUrlsEnabled)
+    {
+        var productUrl = Url.RouteUrl(" Product", new { SeName = Model.SeName }, webHelper.CurrentRequestProtocol).ToLowerInvariant();
+        Html.AddCanonicalUrlParts(productUrl, seoSettings.QueryStringInCanonicalUrlsEnabled);
+    }
+    //open graph META tags
+    if (seoSettings.OpenGraphMetaTags)
+    {
+        Html.AddHeadCustomParts("<meta property=\"og:type\" content=\"product\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:title\" content=\"" + Html.Encode(Model.Name) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:description\" content=\"" + Html.Encode(Nop.Core.Html.HtmlHelper.StripTags(Model.MetaDescription)) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:image\" content=\"" + Model.DefaultPictureModel.ImageUrl + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:image:url\" content=\"" + Model.DefaultPictureModel.ImageUrl + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:url\" content=\"" + webHelper.GetThisPageUrl(false) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"og:site_name\" content=\"" + Html.Encode(Model.CurrentStoreName) + "\" />");
+    }
+
+    //Twitter META tags
+    if (seoSettings.TwitterMetaTags)
+    {
+        Html.AddHeadCustomParts("<meta property=\"twitter:card\" content=\"summary\" />");
+        Html.AddHeadCustomParts("<meta property=\"twitter:site\" content=\"" + Html.Encode(Model.CurrentStoreName) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"twitter:title\" content=\"" + Html.Encode(Model.Name) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"twitter:description\" content=\"" + Html.Encode(Nop.Core.Html.HtmlHelper.StripTags(Model.MetaDescription)) + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"twitter:image\" content=\"" + Model.DefaultPictureModel.ImageUrl + "\" />");
+        Html.AddHeadCustomParts("<meta property=\"twitter:url\" content=\"" + webHelper.GetThisPageUrl(false) + "\" />");
+    }
+
+    var browser = HttpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+}
+
+<style>
+    label {
+        color: grey;
+        font-size: 14px;
+    }
+
+    input[type="radio"] {
+        display: none;
+    }
+
+    .clasificacion {
+        margin-left: 20px;
+        direction: rtl;
+        float: left;
+        unicode-bidi: bidi-override;
+        width: 100%;
+    }
+
+    .ratings-quick {
+        width: 100%;
+    }
+
+    .pn {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: -20px !important;
+        background: #f5f5f5 !important;
+    }
+
+
+    .ratings-quick {
+        margin-left: 0 !important;
+        text-align: center;
+    }
+
+    .picture-thumbs .slick-prev,
+    .picture-thumbs .slick-next {
+        cursor: pointer;
+        height: 18px;
+        margin-top: -120px;
+    }
+
+    .product-details-page .gallery .picture-thumbs {
+        height: 140px !important;
+    }
+</style>
+<input type="hidden" id="brandedItems_@Model.Id" name="brandedItems_@Model.Id" value="@Model.Custitem_branded_variants" />
+
+<!--product breadcrumb-->
+<div class="row justify-content-center colorGeneralBackgroundGray wop title-cart-version-mobile class-z1-version-mobile">
+    <div class="col-12 col-sm-11 col-md-11 col-lg-11 text-center wop class-z2-version-mobile">
+        <div class="" style="max-width:100%;background:transparent">
+            @await Html.PartialAsync("_ProductBreadcrumb", Model.Breadcrumb)
+        </div>
+        <div class="product-name panel-heading mt-3 w-75 mx-auto">
+            <h1 class="title-product-page-simple">
+                @Model.Name
+            </h1>
+        </div>
+    </div>
+</div>
+
+@await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsAfterBreadcrumb, additionalData = Model })
+
+<div class="row justify-content-center">
+    <div class="wop col-sm-11 col-md-11 col-lg-11 text-center">
+        <div class="row justify-content-center">
+            <div class="col-sm-11 col-md-11 col-lg-11 text-center">
+                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsTop, additionalData = Model })
+                <form asp-route="Product" asp-route-sename="@Model.SeName" method="post" id="product-details-form">
+                    @if (seoSettings.MicrodataEnabled)
+                    {
+                        @await Html.PartialAsync("_Microdata", Model)
+                    }
+                    <div class="text-center" data-productid="@Model.Id">
+                        <div class="row text-center">
+                            <div class="col-md-5 col-lg-5">
+                                @*@await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })*@
+
+                                <!--product pictures-->
+                                @*@await Html.PartialAsync("_ProductDetailsPictures", Model)*@
+
+                                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsEssentialTop, additionalData = Model })
+                                @{
+                                    var cloudZoom = await Component.InvokeAsync("Widget", new { widgetZone = "sevenspikes_cloud_zoom", additionalData = Model });
+                                }
+                                @if (!String.IsNullOrEmpty(cloudZoom.ToHtmlString()))
+                                {
+                                    @cloudZoom
+                                }
+                                else
+                                {
+                                    @await Html.PartialAsync("_ProductDetailsPictures", Model)
+                                }
+                            </div>
+                            <div class="col-md-7  col-lg-7">
+                                <div class="row mt-5 text-left">
+                                    <div class="col-sm-6 col-md-6 col-lg-6">
+
+                                        <div class="row">
+
+                                            @await Html.PartialAsync("_Discontinued", Model)
+                                        </div>
+                                        <div class="row">
+
+
+                                            <div class="col-4 col-sm-3 col-md-4 col-lg-4 my-auto">
+
+                                                <span class="price-detail-produc">
+                                                    PRICE:
+                                                </span>
+                                            </div>
+                                            <div class="col-8 col-sm-6 col-md-6 col-lg-6">
+                                                @{
+                                                    var dataDictPrice = new ViewDataDictionary(ViewData);
+                                                    dataDictPrice.TemplateInfo.HtmlFieldPrefix = $"price_{Model.Id}";
+                                                    @await Html.PartialAsync("_ProductPrice", Model.ProductPrice, dataDictPrice)
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="row mt-4">
+                                            <div class="col-4 col-sm-3 col-md-4 col-lg-4 my-auto">
+                                                <span class="price-detail-produc">
+                                                    QUANTITY:
+                                                </span>
+                                            </div>
+                                            <div class="col-8 col-sm-6 col-md-6 col-lg-6 my-auto">
+
+                                                @{ var dataDictAddToCart = new ViewDataDictionary(ViewData);
+                                                    dataDictAddToCart.TemplateInfo.HtmlFieldPrefix = $"addtocart_{Model.Id}";
+                                                    @await Html.PartialAsync("_AddToCart", Model.AddToCart, dataDictAddToCart)
+                                                }
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                                @if (!Model.OutStock)
+                                {
+                                    <div class="row wop div-btn-detail-mobile" style="display:none;">
+                                        <div class="col-12 wop">
+                                            @if (Model.UnShippable)
+                                            {
+                                                <span class="UnShippable unshippable-desktop" style="color: red !important;">@T("Product.UnShippable")</span>
+                                            }
+                                        </div>
+                                        <div class="col-12 wop">
+                                            <a onclick="AjaxCart.addproducttocart_details('/addproducttocart/details/@Model.Id/1', '#product-details-form');return false;" class="btn-addtocart-mobile btn btn-secondary" href="https://www.jose-aguilar.com/scripts/css/bootstrap/tutorial/botones/" target="_blank" rel="noopener noreferrer" data-toggle="modal" data-target="#modalAddToCart">
+                                                <i class="nn- nn-car footer-icon-size mr-1" aria-hidden="true"></i>
+                                                @T("shoppingcart.addtocart")
+                                            </a>
+                                        </div>
+                                        <div class="col-12 wop">
+                                            <a onclick="AjaxCart.addproducttocart_details('/addproducttocart/details/@Model.Id/2', '#product-details-form');return false;" class="btn-addtowish-mobile btn btn-secondary" href="https://www.jose-aguilar.com/scripts/css/bootstrap/tutorial/botones/" target="_blank" rel="noopener noreferrer" data-toggle="modal" data-target="#modalAddToWish">
+                                                <i class="fa fa-heart-o"></i>
+                                                @T("products.wishlist.addtowishlist	")
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-4 div-btn-detail-desktop">
+                                        <div class="col-sm-5 col-md-5 col-lg-5 my-auto pl-0">
+                                            <button class="btn-add-wishlist" data-productid="2" onclick="AjaxCart.addproducttocart_details('/addproducttocart/details/@Model.Id/2', '#product-details-form');return false;">
+                                                <i class="glyphicon glyphicon-heart" style="color:#d0021b; margin-right:10px;"></i> @T("products.wishlist.addtowishlist	")
+                                            </button>
+                                        </div>
+                                        <div class="col-sm-5 col-md-5 col-lg-5 my-auto pl-0">
+                                            <a id="addtocart" onclick="AjaxCart.addproducttocart_details('/addproducttocart/details/@Model.Id/1', '#product-details-form');return false;" class="btn-add-cart"> <i class="glyphicon glyphicon-shopping-cart" style="color:#FFFFFF; margin-right:10px;"></i>@T("shoppingcart.addtocart")</a>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+
+                                    <br />
+                                    <div class="col-sm-5 col-md-5 col-lg-5 my-auto pl-0">
+                                        <a id="" class="btn-add-soldOld text-danger"> <i class="glyphicon glyphicon-shopping-cart" style="color:#FFFFFF; margin-right:10px;"></i>@T("shoppingcart.SoldOut")</a>
+                                    </div>
+                                }
+                                <div class="row mt-5 text-left short-description-desktop">
+                                    <div class="col-sm-12 col-md-12 col-lg-12 p-0">
+                                        @if (!string.IsNullOrEmpty(Model.ShortDescription))
+                                        {
+                                            <div class=" short-description mb-5" style="padding-bottom: 20px; padding-left: .25rem !important; margin: 0.25rem !important;">
+                                                <span>Description:</span>
+                                                <br />
+                                                <br />
+                                                @Html.Raw(Model.ShortDescription)
+                                            </div>
+                                        }
+
+
+                                        @if (Model.UnShippable)
+                                        {
+                                            <span class="UnShippable unshippable-desktop">@T("Product.UnShippable")</span>
+                                        }
+                                        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsOverviewTop, additionalData = Model })
+                                        <!--SKU, MAN, GTIN, vendor-->
+                                        <!--sample download-->
+                                        <!--attributes-->
+                                        @{
+                                            var dataDictAttributes = new ViewDataDictionary(ViewData);
+                                            dataDictAttributes.TemplateInfo.HtmlFieldPrefix = $"attributes_{Model.Id}";
+                                            @await Html.PartialAsync("_ProductAttributes", Model.ProductAttributes, dataDictAttributes)
+                                        }
+                                        <!--gift card-->
+                                        @{
+                                            var dataDictGiftCard = new ViewDataDictionary(ViewData);
+                                            dataDictGiftCard.TemplateInfo.HtmlFieldPrefix = $"giftcard_{Model.Id}";
+                                            @await Html.PartialAsync("_GiftCardInfo", Model.GiftCard, dataDictGiftCard)
+                                        }
+                                        <!--rental info-->
+                                        @{
+                                            var dataDictRental = new ViewDataDictionary(ViewData);
+                                            dataDictRental.TemplateInfo.HtmlFieldPrefix = $"rental_{Model.Id}";
+                                            @await Html.PartialAsync("_RentalInfo", Model, dataDictRental)
+                                        }
+                                        <!--price & add to cart & estimate shipping-->
+                                        @*<div class="ratings-quick" id="#form" style="padding-bottom:20px">
+                                                <span style=" font-style: normal; font-weight: bold; font-size: 18px; line-height: 24px;margin-top: 10px;float: left;">Ratings</span>
+                                                <p class="clasificacion">
+                                                    <input id="radio1" type="radio" name="estrellas" value="5">
+                                                    <label for="radio1">★</label>
+                                                    <input id="radio2" type="radio" name="estrellas" value="4">
+                                                    <label for="radio2">★</label>
+                                                    <input id="radio3" type="radio" name="estrellas" value="3">
+                                                    <label for="radio3">★</label>
+                                                    <input id="radio4" type="radio" name="estrellas" value="2">
+                                                    <label for="radio4">★</label>
+                                                    <input id="radio5" type="radio" name="estrellas" value="1">
+                                                    <label for="radio5">★</label>
+                                                </p>
+
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <a style="text-align:left">Be the first to review this product</a>
+                                                </div>
+                                            </div>*@
+
+                                        @await Html.PartialAsync("_ProductTierPrices", Model.TierPrices)
+                                        <div class="form-group email-friend-btn" style="padding-bottom:20px">
+                                            <div class="email-compare-button">
+                                                <!--wishlist, compare, email a friend-->
+                                                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsBefore, additionalData = Model })
+
+                                                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsInsideOverviewButtonsAfter, additionalData = Model })
+                                            </div>
+                                        </div>
+                                        <div id="shared-button-version-mobile">
+                                            @await Html.PartialAsync("_ShareButton", Model)
+                                            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsOverviewBottom, additionalData = Model })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row text-center mt-5 description-zone-desktop">
+                            <div class="col-12">
+                                <div class="product-essentiall from-panel">
+                                    <div class="panel-body">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <div class="product-details-tabs">
+                                                    <ul class="nav nav-tabs">
+                                                        @if (!string.IsNullOrEmpty(Model.FullDescription))
+                                                        {
+                                                            <li class="nav-item">
+                                                                <a class="nav-link colorGeneralColorGray2 active" href="#description" data-toggle="tab">@T("products.compare.fulldescription")</a>
+                                                            </li>
+                                                        }
+                                                        else
+                                                        {
+                                                            <li class="nav-item">
+                                                                <a class="nav-link colorGeneralColorGray2 active" href="#description" data-toggle="tab">@T("products.compare.fulldescription")</a>
+                                                            </li>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(@Html.Partial("_ProductSpecifications", Model.ProductSpecifications).ToString()))
+                                                        {
+                                                            <li class="nav-item">
+                                                                <a class="nav-link colorGeneralColorGray2" href="#specification" data-toggle="tab">@T("Products.Specs")</a>
+                                                            </li>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(@Html.Partial("_ProductTags", Model.ProductTags).ToString()))
+                                                        {
+                                                            <li class="nav-item">
+                                                                <a class="nav-link colorGeneralColorGray2" href="#tags" data-toggle="tab">@T("Products.Tags")</a>
+                                                            </li>
+                                                        }
+
+
+                                                    </ul>
+                                                    <div class="tab-content p-3">
+                                                        @if (!string.IsNullOrEmpty(Model.FullDescription))
+                                                        {
+                                                            <div class="text-left full-description tab-pane fade in active show" id="description">
+                                                                @Html.Raw(Model.FullDescription)
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="text-left full-description tab-pane fade in active show" id="description">
+                                                                @Html.Raw(Model.ShortDescription)
+                                                            </div>
+                                                        }
+
+                                                        <div class="text-left product-specification fade tab-pane" id="specification">
+                                                            <div class="product-specs-box">
+                                                                <div class="panel panel-default">
+                                                                    <table class="table">
+                                                                        <thead class="d-none">
+                                                                            <tr class="hidden-row">
+                                                                                <th width="25%"><span>@T("Products.Specs.AttributeName")</span></th>
+                                                                                <th><span>@T("Products.Specs.AttributeValue")</span></th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            @{
+                                                                                if (Model.Weight != decimal.Zero)
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+
+                                                                                            @T("productDetail.Weight")
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+                                                                                            @{
+                                                                                                string value = "";
+                                                                                                double a = double.Parse(Model.Weight.ToString());
+                                                                                                int y = Convert.ToInt32(Model.Weight);
+                                                                                                double b = a - y;
+
+                                                                                                if (b == 0)
+                                                                                                {
+                                                                                                    value = a.ToString("N2");
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                    value = Model.Weight.ToString("N2");
+                                                                                                }
+                                                                                            }
+                                                                                            @Html.Raw(value)<span>lb</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (!string.IsNullOrWhiteSpace(Model.ShipLength))
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.Length")
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.ShipLength)
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (!string.IsNullOrWhiteSpace(Model.ShipWidth))
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.Width")
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.ShipWidth)
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (!string.IsNullOrWhiteSpace(Model.ShipHeight))
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.Height")
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.ShipHeight)
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (Model.Length != decimal.Zero)
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.ShipLength")
+
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.Length)<span>"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (Model.Width != decimal.Zero)
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.ShipWidth")
+
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.Width)<span>"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (Model.Height != decimal.Zero)
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.ShipHeight")
+
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.Height)<span>"</span>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                                if (Model.LoadCapacity != decimal.Zero)
+                                                                                {
+                                                                                    <tr class="odd">
+                                                                                        <td class="a-left spec-name">
+                                                                                            @T("productDetail.LoadCapacity")
+                                                                                        </td>
+                                                                                        <td class="a-left spec-value text-Lato ">
+
+                                                                                            @Html.Raw(Model.LoadCapacity)
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                }
+                                                                            }
+                                                                            @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecifications)
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="text-left product-tags tab-pane fade" id="tags">
+                                                            @await Html.PartialAsync("_ProductTags", Model.ProductTags)
+                                                        </div>
+
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsEssentialBottom, additionalData = Model })
+                                        </div>
+                                    </div>
+                                </div>
+                                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsBeforeCollateral, additionalData = Model })
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="row wop">
+            <div class="col-12">
+                <div id="accordionProductDetails" class="accordion" style="display: none;">
+                    <div class="card mb-0">
+                        <div class="card-header collapsed" data-toggle="collapse" href="#collapseOneDetail">
+                            <a class="card-title">
+                                @T("products.compare.fulldescription")
+                            </a>
+                        </div>
+                        <div id="collapseOneDetail" class="card-body collapse" data-parent="#accordionProductDetails">
+                            @if (!string.IsNullOrEmpty(Model.FullDescription))
+                            {
+                                <div class="text-left full-description tab-pane fade in active show" id="description">
+                                    @Html.Raw(Model.FullDescription)
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-left full-description tab-pane fade in active show" id="description">
+                                    @Html.Raw(Model.ShortDescription)
+                                </div>
+                            }
+                        </div>
+                        <div class="card-header collapsed" data-toggle="collapse" data-parent="#accordionProductDetails" href="#collapseTwoDetail">
+                            <a class="card-title">
+                                @T("Products.Specs")
+                            </a>
+                        </div>
+                        <div id="collapseTwoDetail" class="card-body collapse" data-parent="#accordionProductDetails">
+                            @{
+                                if (Model.Weight != decimal.Zero)
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.Weight")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.Weight)
+                                        </div>
+                                    </div>
+                                }
+                                if (!string.IsNullOrWhiteSpace(Model.ShipLength))
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.Length")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.ShipLength)
+                                        </div>
+                                    </div>
+                                }
+                                if (!string.IsNullOrWhiteSpace(Model.ShipWidth))
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.Width")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.ShipWidth)
+                                        </div>
+                                    </div>
+                                }
+                                if (!string.IsNullOrWhiteSpace(Model.ShipHeight))
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.Height")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.ShipHeight)
+                                        </div>
+                                    </div>
+                                }
+                                if (Model.Length != decimal.Zero)
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.ShipLength")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.Length)
+                                        </div>
+                                    </div>
+                                }
+                                if (Model.Width != decimal.Zero)
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.ShipWidth")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.Width)
+                                        </div>
+                                    </div>
+                                }
+                                if (Model.Height != decimal.Zero)
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.ShipHeight")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.Height)
+                                        </div>
+                                    </div>
+                                }
+                                if (Model.LoadCapacity != decimal.Zero)
+                                {
+                                    <div class="row">
+                                        <div class="col-6" style="text-align: left !important; font-weight: bold !important;">
+                                            @T("productDetail.LoadCapacity")
+                                        </div>
+                                        <div class="col-6" style="text-align: left !important;">
+                                            @Html.Raw(Model.LoadCapacity)
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            <div class="text-left product-specification fade tab-pane" id="specification">
+                                <div class="product-specs-box">
+                                    <div class="panel panel-default">
+                                        <table class="table">
+                                            <thead class="d-none">
+                                                <tr class="hidden-row">
+                                                    <th width="25%"><span>@T("Products.Specs.AttributeName")</span></th>
+                                                    <th><span class="">@T("Products.Specs.AttributeValue")</span></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+                                                @await Html.PartialAsync("_ProductSpecifications", Model.ProductSpecifications)
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-header collapsed" data-toggle="collapse" data-parent="#accordionProductDetails" href="#collapseThreeDetail">
+                            <a class="card-title">
+                                @T("Products.Tags")
+                            </a>
+                        </div>
+                        <div id="collapseThreeDetail" class="collapse" data-parent="#accordionProductDetails">
+                            @await Html.PartialAsync("_ProductTags", Model.ProductTags)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="shared-contactus-page-mobile">
+            @await Html.PartialAsync("_ShareButton", Model)
+        </div>
+
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductDetailsBottom, additionalData = Model })
+    </div>
+</div>
+    </div>
+</div>
+<div class="w-100 colorGeneralBackgroundGray pt-5 pb-5 mt-5 d-none divRelatedProductsBoxProdyctDetail" id="divRelatedProductsBox" style="margin-top: 30px !important;">
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-4 text-center title-related-products-product-box">
+            Related Products
+        </div>
+    </div>
+
+    @*@await Component.InvokeAsync("ProductsAlsoPurchased", new { productId = Model.Id })*@
+    @await Component.InvokeAsync("RelatedProducts", new { productId = Model.Id })
+</div>
+<style>
+    .product-details-page .product-grid .item-box {
+        height: 480px !important;
+        width: 232px;
+    }
+
+    .product-details-page .product-collateral .related-products-grid .item-grid .item-box .picture a img {
+        height: 48% !important;
+    }
+
+    .product-details-page .product-collateral .related-products-grid .item-grid .item-box .description p {
+        width: 213px !important;
+        text-align: left;
+        overflow: auto;
+        height: 81px;
+        white-space: initial;
+        text-overflow: ellipsis;
+    }
+
+    .product-details-page .product-collateral .related-products-grid .item-grid .item-box .actual-price {
+        margin-left: 0px !important;
+        font-weight: bold;
+        text-align: left;
+        float: left;
+    }
+
+    .close {
+        font-size: 30px;
+        font-weight: bold;
+        line-height: 1;
+        color: #000;
+        opacity: unset !important;
+    }
+
+    #divRelatedProductsBox .title {
+        display: none;
+    }
+
+    .footer {
+        zoom: 80%;
+    }
+
+    body > div.row.justify-content-center.my-auto.pt-3.pb-3 {
+        zoom: 80%;
+    }
+</style>
+
+
+

@@ -1,0 +1,16 @@
+﻿@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.StoreClosed").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-store-closed-page");
+}
+<div class="page store-closed-page">
+    <div class="page-title">
+        <h1>@T("StoreClosed")</h1>
+    </div>
+    <div class="page-body" style="text-align:center">
+        <img src="~/images/closestore.png" /> 
+    </div>
+</div>

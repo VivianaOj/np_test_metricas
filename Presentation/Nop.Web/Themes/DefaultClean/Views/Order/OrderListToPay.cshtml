@@ -1,0 +1,574 @@
+﻿@using Nop.Core.Domain.Orders
+@model OrderPaymentModel
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Account").Text);
+
+    //page class
+    Html.AppendPageCssClassParts("html-account-page");
+    Html.AppendPageCssClassParts("html-order-list-page");
+}
+
+
+<style>
+    #rowCatalogsSelectorFilter {
+        display: none !important;
+    }
+
+    .SelectOrdersToPay {
+        border: 0px !important;
+    }
+
+        .selectorderstopay thead tr, .selectorderstopay thead tr th, .selectorderstopay thead tr td
+        .selectorderstopay tbody tr, .selectorderstopay tbody tr th, .selectorderstopay tbody tr td {
+            border: 0px !important;
+        }
+
+        .selectorderstopay > tbody > tr, .selectorderstopay > tbody > tr > th, .selectorderstopay > tbody > tr > td {
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+        }
+
+    .OrderDetailDiv, .DetailDivOrderMobile {
+        padding: 10px !important;
+        display: none;
+    }
+
+    .products-orderdetailmobile-selectorderstopay {
+        border: 0px !important;
+    }
+
+    .wop {
+        padding: 0px !important;
+    }
+
+    .container-btn {
+        display: block;
+        position: relative;
+        padding-left: 35px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        font-size: 22px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+        .container-btn input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+    .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 25px;
+        width: 25px;
+        border-radius: 0px !important;
+        background-color: #eee;
+    }
+
+    /* On mouse-over, add a grey background color */
+    .container-btn:hover input ~ .checkmark {
+        background-color: #ccc;
+    }
+
+    /* When the checkbox is checked, add a blue background */
+    .container-btn input:checked ~ .checkmark {
+        background-color: #2196F3;
+    }
+
+    /* Create the checkmark/indicator (hidden when not checked) */
+    .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+
+    /* Show the checkmark when checked */
+    .container-btn input:checked ~ .checkmark:after {
+        display: block;
+    }
+
+    /* Style the checkmark/indicator */
+    .container-btn .checkmark:after {
+        left: 9px;
+        top: 5px;
+        width: 5px;
+        height: 10px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+</style>
+
+<div class="row d-flex justify-content-center">
+    <div class="col-sm-11 col-md-11 col-lg-11 mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-12">
+                <div class="page-title page-title-selectorderstopay-mobile page-title-selectorderstopay-desktop">
+                    <h1>@T("Order.OrderListToPay")</h1>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center input-orderdetailmobile-selectorderstopay selectalldesktop">
+            <div class="col-lg-5"></div>
+            <div class="col-lg-2">
+                <div class="page-title" style="border: 0px !important; width:150px !important;">
+                    <div id="selectalldivdesktop" style="cursor: pointer; position: relative; bottom: 10px; left: 30px;" onclick="checkAllDestop(); return false;" class="text-info">Select All</div>
+                    <div id="unselectalldivdesktop" style="display:none; cursor: pointer; position: relative; bottom: 10px; left: 30px;" onclick="unCheckAllDesktop(); return false;" class="text-info">Unselect All</div>
+                </div>
+            </div>
+            <div class="col-lg-5"></div>
+        </div>
+        <div class="row justify-content-center selectallmobile">
+            <div id="selectalldivmobile" style="cursor: pointer; position: relative; text-align: center;" onclick="checkAllMobile(); return false;" class="text-info">Select All</div>
+            <div id="unselectalldivmobile" style="display: none; cursor: pointer; position: relative; text-align: center;" onclick="unCheckAllMobile(); return false;" class="text-info">Unselect All</div>
+        </div>
+        <div class="row justify-content-center selectorderstopay-version-desktop">
+            <div class="col-lg-12">
+                <table class="table selectorderstopay">
+                    <thead>
+                        <tr>
+                            <th scope="col"></th>
+                            <th scope="col">Created Date</th>
+                            <th scope="col">Order #</th>
+                            <th scope="col">Company</th>
+                            <th scope="col">PO#</th>
+                            <th scope="col">Orig. Amt.</th>
+                            <th scope="col">Amt. Due</th>
+                            @*<th scope="col">Payment Amt.</th>*@
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.OrderDetailsModel)
+                        {
+                            <tr>
+                                <th scope="row">
+                                    <input type="checkbox" id="order_@order.Id" name="order_@order.Id" />
+                                </th>
+                                <td>@order.CreatedOn</td>
+                                <td>#@order.Id</td>
+                                <td>@order.company</td>
+                                <td>@order.PONumber</td>
+                                <td>$@order.OrderTotalPayList.ToString("0. ##")</td>
+                                <td><span class="text-danger">$@order.OrderTotalPayList.ToString("0. ##")</span></td>
+                                @*<td><input type="text" /></td>*@
+                            </tr>
+                            <tr>
+                                <td scope="row"></td>
+                                <td><a class="text-info" style="cursor: pointer;" onclick="showDetailDiv('DetailDivOrder_@order.Id'); return false;">View details</a></td>
+                                <td colspan="6"><hr /></td>
+                            </tr>
+                            <tr id="DetailDivOrder_@order.Id" class="OrderDetailDiv">
+                                <th></th>
+                                <td colspan="7">
+                                    <div class="row">
+                                        @{
+                                            decimal subTotalWT = 0;
+                                            decimal subTotalWOT = 0;
+                                        }
+                                        <div class="col-lg-1"></div>
+                                        <div class="col-lg-9 wop">
+                                            <table class="table orderdetailtable">
+                                                <thead>
+                                                    <tr>
+                                                        <th scope="col">Product(s)</th>
+                                                        <th scope="col">Quantity</th>
+                                                        <th scope="col">Rate</th>
+                                                        <th scope="col">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach (var orderItem in order.OrderItems)
+                                                    {
+                                                        var productTotalWT = orderItem.Quantity * orderItem.UnitPriceInclTax;
+                                                        subTotalWT += productTotalWT;
+                                                        var productTotalWOT = orderItem.Quantity * orderItem.UnitPriceExclTax;
+                                                        subTotalWOT += productTotalWOT;
+                                                        <tr>
+                                                            <td>@orderItem.Product.Name</td>
+                                                            <td>@orderItem.Quantity</td>
+                                                            <td>@orderItem.UnitPriceInclTax.ToString("0. ##")</td>
+                                                            <td>$@productTotalWT.ToString("0. ##")</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        @{
+                                            decimal taxes = subTotalWT - subTotalWOT;
+                                            decimal total = subTotalWT;
+                                        }
+                                        <div class="col-lg-2 wop">
+                                            <div class="row wop" style="margin-top: 15px;">
+                                                <div class="col-lg-12 wop">
+                                                    <b>Subtotal:</b> $@subTotalWOT.ToString("0. ##")
+                                                </div>
+                                                <div class="col-lg-12 wop">
+                                                    <b>Taxes:</b> $@taxes.ToString("0. ##")
+                                                </div>
+                                                <div class="col-lg-12 wop">
+                                                    <b>Shipping:</b> $@order.OrderShippingInclTax.ToString("0. ##")
+                                                </div>
+                                                <div class="col-lg-12 wop">
+                                                    <b>Total:</b> $@order.OrderTotalPayList.ToString("0. ##")
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="row justify-content-center selectorderstopay-version-mobile">
+            @foreach (var order in Model.OrderDetailsModel)
+            {
+
+                <div class="col-12">
+                    <div class="row wop orderdetailmobile-selectorderstopay">
+                        <div class="col-12 wop" style="text-align: center !important; padding: 10px 0px !important;">
+                            <center>
+                                <input type="checkbox" id="order_mobile_@order.Id" name="order_mobile_@order.Id" />
+                            </center>
+                        </div>
+                        <div class="col-12 wop">
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    <b>Due Date: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>order #: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>Company: </b>
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    @order.CreatedOn
+                                </div>
+                                <div class="col-4 wop">
+                                    INV(#@order.Id)
+                                </div>
+                                <div class="col-4 wop">
+                                    @order.company
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    <b>PO Number: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>Orig. Amt.: </b>
+                                </div>
+                                <div class="col-4 wop">
+                                    <b>Amt. Due: </b>
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-4 wop">
+                                    @order.PONumber
+                                </div>
+                                <div class="col-4 wop">
+                                    $@order.OrderTotalPayList.ToString("0. ##")
+                                </div>
+                                <div class="col-4 wop text-danger">
+                                    $@order.OrderTotalPayList.ToString("0. ##")
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important;">
+                                <div class="col-12 wop">
+                                    <b>Payment Amt.</b>
+                                </div>
+                                <div class="col-12 wop">
+                                    <input class="input-orderdetailmobile-selectorderstopay" type="text" />
+                                </div>
+                            </div>
+                            <div class="row wop" style="text-align: center !important; padding: 10px 0px !important;">
+                                <div class="col-12 wop">
+                                    <span class="text-info" style="cursor: pointer;" onclick="showDetailDiv('DetailDivOrderMobile_@order.Id'); return false;">View details</span>
+                                </div>
+                            </div>
+                            <div class="DetailDivOrderMobile" id="DetailDivOrderMobile_@order.Id">
+                                @{
+                                    decimal subTotalWTMobile = 0;
+                                    decimal subTotalWOTMobile = 0;
+                                }
+                                <div class="row wop products-orderdetailmobile-selectorderstopay">
+                                    <div class="col-8 wop">
+                                        <b>Product -  Quantity</b>
+                                    </div>
+                                    <div class="col-1 wop">
+                                        <b>Qty.</b>
+                                    </div>
+                                    <div class="col-1 wop">
+                                        <b>Rate</b>
+                                    </div>
+                                    <div class="col-2 wop">
+                                        <b>Total</b>
+                                    </div>
+                                    @foreach (var orderItem in order.OrderItems)
+                                    {
+                                        var productTotalWTMobile = orderItem.Quantity * orderItem.UnitPriceInclTax;
+                                        subTotalWTMobile += productTotalWTMobile;
+                                        var productTotalWOTMobile = orderItem.Quantity * orderItem.UnitPriceExclTax;
+                                        subTotalWOTMobile += productTotalWOTMobile;
+
+                                        <div class="col-8 wop textal-orderdetailmobile-selectorderstopay">
+                                            @orderItem.Product.Name
+                                        </div>
+                                        <div class="col-1 wop">
+                                            @orderItem.Quantity
+                                        </div>
+                                        <div class="col-1 wop">
+                                            @orderItem.UnitPriceInclTax.ToString("0. ##")
+                                        </div>
+                                        <div class="col-2 wop">
+                                            $@productTotalWTMobile.ToString("0. ##")
+                                        </div>
+                                    }
+                                    @{
+                                        decimal taxesMobile = subTotalWTMobile - subTotalWOTMobile;
+                                        decimal totalMobile = subTotalWTMobile;
+                                    }
+                                    <div class="col-12 wop" style="margin-top: 10px;">
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Subtotal:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay">
+                                                $@subTotalWOTMobile.ToString("0. ##")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Taxes:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay">
+                                                $@taxesMobile.ToString("0. ##")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Shipping:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay">
+                                                $@order.OrderShippingInclTax.ToString("0. ##")
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-3 wop textal-orderdetailmobile-selectorderstopay">
+                                                <b>Total:</b>
+                                            </div>
+                                            <div class="col-2 wop textar-orderdetailmobile-selectorderstopay">
+                                                $@order.OrderTotal
+                                            </div>
+                                            <div class="col-7 wop textar-orderdetailmobile-selectorderstopay"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <div class="row">
+            <div class="col-12 col-lg-12 text-total-payment-selectorderstopay">
+                Total Payment Amount <span id="total-payment-amount">$0.00</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+@using (Html.BeginForm("OrderListToPayStepPay", "Order", FormMethod.Post, new { id = "OrderListForm", name = "OrderListForm", style = "width: 100%" }))
+{
+
+    <input id="orderByPay" name="orderByPay" type="hidden" />
+    <div class="row">
+        <div class="col-12 col-lg-3">
+
+        </div>
+        <div class="col-12 col-lg-6" style="margin: 30px 0px;">
+            <center>
+                <a href="/order/history" class="btn btn-outline-danger btn-finish-total-payment-selectorderstopay" style="padding: 5px !important;">Back</a>
+                <button type="submit" class="btn btn-info btn-finish-total-payment-selectorderstopay">Continue</button>
+            </center>
+        </div>
+        <div class="col-12 col-lg-3">
+
+        </div>
+    </div>
+}
+<script>
+    $(document).ready(function () {
+        var total = 0;
+        let orderlist = [];
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+            $('#order_@order.Id').on('change', function(event) {
+                if ($('#order_@order.Id').prop('checked')) {
+                    total += @order.OrderTotalPayList;
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    orderlist.push("@order.Id");
+                    $('#orderByPay').val(orderlist);
+                }
+                else {
+                    total -= @order.OrderTotalPayList;
+                    if (total < 1) {
+                        total = 0;
+                    }
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    orderlist = orderlist.filter((item) => item !== '@order.Id');
+                    $('#orderByPay').val(orderlist);
+                }
+            })
+            </text>
+        }
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+            $('#order_mobile_@order.Id').on('change', function(event) {
+                if ($('#order_mobile_@order.Id').prop('checked')) {
+                    total += @order.OrderTotalPayList;
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    orderlist.push("@order.Id");
+                    $('#orderByPay').val(orderlist);
+                }
+                else {
+                    total -= @order.OrderTotalPayList;
+                    if (total < 1) {
+                        total = 0;
+                    }
+                    $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+                    orderlist = orderlist.filter((item) => item !== '@order.Id');
+                    $('#orderByPay').val(orderlist);
+                }
+            })
+            </text>
+        }
+
+    })
+
+    function showDetailDiv(div) {
+        $("#" + div).toggle("slow");
+    }
+
+    function showDetailDivMobile(div) {
+        $("#" + div).toggle("slow");
+    }
+
+    function checkAllDestop() {
+        var total = 0;
+        let orderlist = [];
+
+        document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+            checkElement.checked = true;
+        });
+
+        $("#selectalldivdesktop").toggle();
+        $("#unselectalldivdesktop").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                total += @order.OrderTotalPayList;
+                $('input[name=order_@order.Id]').prop('disabled', true);
+                orderlist.push("@order.Id");
+
+            </text>
+        }
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $('#orderByPay').val(orderlist);
+    }
+
+    function unCheckAllDesktop() {
+        var total = 0;
+        let orderlist = [];
+
+        document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+            checkElement.checked = false;
+        });
+
+        $("#selectalldivdesktop").toggle();
+        $("#unselectalldivdesktop").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                $('input[name=order_@order.Id]').prop('disabled', false);
+            </text>
+        }
+
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $('#orderByPay').val(orderlist);
+    }
+
+    function checkAllMobile() {
+        var total = 0;
+        let orderlist = [];
+
+        document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+            checkElement.checked = true;
+        });
+
+        $("#selectalldivmobile").toggle();
+        $("#unselectalldivmobile").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                total += @order.OrderTotalPayList;
+                $('input[name=order_mobile_@order.Id]').prop('disabled', true);
+                orderlist.push("@order.Id");
+
+            </text>
+        }
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $('#orderByPay').val(orderlist);
+    }
+
+    function unCheckAllMobile() {
+        var total = 0;
+        let orderlist = [];
+
+        document.querySelectorAll('input[type=checkbox]').forEach(function (checkElement) {
+            checkElement.checked = false;
+        });
+
+        $("#selectalldivmobile").toggle();
+        $("#unselectalldivmobile").toggle();
+
+        @foreach (var order in Model.OrderDetailsModel)
+        {
+            <text>
+                $('input[name=order_mobile_@order.Id]').prop('disabled', false);
+            </text>
+        }
+
+        $('#total-payment-amount').text("$" + Number.parseFloat(total).toFixed(2));
+        $('#orderByPay').val(orderlist);
+    }
+</script>

@@ -1,0 +1,74 @@
+﻿@model CategoryNavigationModel
+@if (Model.Categories.Count > 0)
+{
+    var indexCategory = 0;
+    @await Html.PartialAsync("_FilterPriceBox", Model.PagingFilteringContext.PriceRangeFilter)
+
+    <div class="block block-category-navigation">
+        <div class="title">
+            <strong>@T("Categories")</strong>
+        </div>
+        <div class="listbox">
+            <div id="accordionCategories">
+
+                @foreach (var category in Model.Categories)
+                {
+
+
+                    <div class="card">
+                        <div class="card-header colorGeneralBackgroundRed colorGeneralWhite pb-2 pt-2" id="headingOne">
+                            <div class="row">
+                                <div class="wop col-1 col-md-2 d-flex menu-version-mobile">
+                                    <i class="fa fa-chevron-down my-auto mr-2 cursorPointer collapsed" style="font-size:16px" data-toggle="collapse" data-target="#@Html.Raw($"collapse_cat_{category.Id}")" aria-expanded="true" aria-controls="@Html.Raw($"collapse_cat_{category.Id}")"></i>
+                                    <i class="fa fa-chevron-up my-auto mr-2 cursorPointer d-none" style="font-size:16px" data-toggle="collapse" data-target="#@Html.Raw($"collapse_cat_{category.Id}")" aria-expanded="true" aria-controls="@Html.Raw($"collapse_cat_{category.Id}")"></i>
+                                </div>
+                                <div class="wop col-11 col-md-10">
+                                    <h5 class="mb-0 btn-link cursorPointer" onclick="window.location.href = '@Url.RouteUrl("Category", new { SeName = category.SeName })'" style="font-size: 0.909rem !important;">
+                                        @category.Name
+                                        @if (category.NumberOfProducts.HasValue)
+                                        {
+                                            <text> </text>@T("Categories.TotalProducts", category.NumberOfProducts.Value)
+                                        }
+                                        @*<button class="btn btn-link" data-toggle="collapse" data-target="#@Html.Raw($"collapse_cat_{category.Id}")" aria-expanded="true" aria-controls="@Html.Raw($"collapse_cat_{category.Id}")">
+                                            </button>*@
+                                    </h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="@Html.Raw($"collapse_cat_{category.Id}")" class="collapse " aria-labelledby="headingOne" data-parent="#accordionCategories">
+                            <div class="card-body p-0">
+
+                                @{
+                                    var categoryLineModel = new CategoryNavigationModel.CategoryLineModel
+                                    {
+                                        CurrentCategoryId = Model.CurrentCategoryId,
+                                        Category = category
+                                    };
+                                }
+
+                                @await Html.PartialAsync("_CategoryLine.Navigation", categoryLineModel)
+
+                            </div>
+                        </div>
+                    </div>
+
+                    indexCategory++;
+                }
+            </div>
+        </div>
+    </div>
+}
+
+
+<script>
+    $('#accordionCategories').on('shown.bs.collapse', function (s) {
+        $(s.target).parent().find('.fa-chevron-up').removeClass('d-none')
+        $(s.target).parent().find('.fa-chevron-down').addClass('d-none')
+    });
+
+    $('#accordionCategories').on('hidden.bs.collapse', function (s) {
+        $(s.target).parent().find('.fa-chevron-up').addClass('d-none')
+        $(s.target).parent().find('.fa-chevron-down').removeClass('d-none')
+    });
+</script>

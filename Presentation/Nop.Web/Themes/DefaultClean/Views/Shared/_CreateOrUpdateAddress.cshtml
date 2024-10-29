@@ -1,0 +1,887 @@
+﻿@model AddressModel
+@using Newtonsoft.Json
+
+<input asp-for="Id" type="hidden" />
+
+<div class="edit-address">
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-4 space2">
+            <div class="form-group">
+                <label asp-for="FirstName" asp-postfix=":" class="address-box-firs-name"></label>
+                <input asp-for="FirstName" class="form-control address-box-form-input" maxlength="100" onchange="validateName()" />
+                @*<nop-required />*@
+                <span asp-validation-for="FirstName" id="@Model.FirstName"></span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 space2">
+            <div class="form-group">
+                <label asp-for="LastName" asp-postfix=":" class="address-box-firs-name"></label>
+                <input asp-for="LastName" class="form-control address-box-form-input" maxlength="100" onchange="validateLastName()" />
+                @*<nop-required />*@
+                <span asp-validation-for="LastName" id="LastNameValidate"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-md-2 space1"></div>
+        <div class="col-12 col-md-4 space2">
+            <div class="form-group">
+                <label asp-for="Email" asp-postfix=":" class="address-box-firs-name"></label>
+                <input asp-for="Email" class="form-control address-box-form-input" maxlength="100" onchange="validateEmail()" />
+                @*<nop-required />*@
+                <span asp-validation-for="Email" id="EmailValidate"></span>
+            </div>
+        </div>
+        <div class="col-12 col-md-4 space2">
+            @if (Model.CompanyEnabled)
+            {
+                <div class="form-group">
+                    <label asp-for="Company" asp-postfix=":" class="address-box-firs-name"></label>
+                    <input asp-for="Company" class="form-control address-box-form-input" maxlength="100" />
+                    @if (Model.CompanyRequired)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="Company"></span>
+                </div>
+            }
+        </div>
+        <div class="col-12 col-md-2 space1"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-md-2 space1"></div>
+        <div class="col-12 col-md-4 space2">
+
+            @if (Model.StreetAddressEnabled)
+            {
+                <div class="form-group">
+                    <label asp-for="Address1" asp-postfix=":" class="address-box-firs-name"></label>
+                    <input asp-for="Address1" class="form-control address-box-form-input" maxlength="100" onchange="validateAddressChange()" autocomplete="off" />
+                    @if (Model.StreetAddressRequired)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="Address1" id="Address1Validate"></span>
+                </div>
+            }
+        </div>
+
+        <div class="col-12 col-md-4 space2">
+            @if (Model.StreetAddress2Enabled)
+            {
+                <div class="form-group">
+                    <label asp-for="Address2" asp-postfix=":" class="address-box-firs-name"></label>
+                    <input asp-for="Address2" class="form-control address-box-form-input" maxlength="100" autocomplete="off" />
+                    @if (Model.StreetAddress2Required)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="Address2"></span>
+                </div>
+            }
+        </div>
+
+        <div class="col-12 col-md-2 space1"></div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-md-2 space1"></div>
+
+        <div class="col-12 col-md-4 space2">
+            @if (Model.CityEnabled)
+            {
+                <div class="form-group">
+                    <label asp-for="City" asp-postfix=":" class="address-box-firs-name"></label>
+                    <input asp-for="City" class="form-control address-box-form-input" maxlength="50" onchange="CityhandleInputChange() " autocomplete="off" />
+                    @if (Model.CityRequired)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="City" id="CityValidate"></span>
+                </div>
+            }
+        </div>
+        <div class="col-12 col-md-4 space2">
+            @if (Model.CountryEnabled && Model.StateProvinceEnabled)
+            {
+                <div class="form-group">
+                    <label asp-for="StateProvinceId" asp-postfix=":" class="address-box-firs-name"></label>
+                    <select onchange="validateStateEmpety(this)" asp-for="StateProvinceId" asp-items="Model.AvailableStates" class="form-control">
+                    </select>
+                    <span id="states-loading-progress" style="display: none;" class="please-wait">@T("Common.Wait...")</span>
+                    <span asp-validation-for="StateProvinceId" id="StateValidate"></span>
+                </div>
+            }
+        </div>
+        <div class="col-12 col-md-2 space1"></div>
+    </div>
+
+    @if (Model.CountyEnabled)
+    {
+        <div class="form-group">
+            <label asp-for="County" asp-postfix=":" class="address-box-firs-name"></label>
+            <input asp-for="County" />
+            @if (Model.CountyRequired)
+            {
+                @*<nop-required />*@
+            }
+            <span asp-validation-for="County"></span>
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-12 col-md-2 space1"></div>
+        <div class="col-12 col-md-4 space2">
+
+            @if (Model.ZipPostalCodeEnabled)
+            {
+                <div class="form-group">
+                    <label asp-for="ZipPostalCode" asp-postfix=":" class="address-box-firs-name"></label>
+                    @*@if (!string.IsNullOrEmpty(Model.ZipPostalCode))
+                        {
+                            <input disabled asp-for="ZipPostalCode" class="form-control address-box-form-input" maxlength="20" />
+                        }
+                        else
+                        {*@
+                    <input asp-for="ZipPostalCode" pattern="^[0-9]{5}(?:-[0-9]{4})?$"
+                           class="form-control address-box-form-input" maxlength="20" type="text" onchange="handleInputChange(this.value)" autocomplete="off" />
+                    @if (Model.ZipPostalCodeRequired)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="ZipPostalCode" id="ZipPostalCodeValidate"></span>
+                    <span id="ErrorAddressZipcode"></span>
+                    @Html.ValidationMessage("ErrorAddressZipcode")
+                    @if (Model.ValidZipCode)
+                    {
+                        <span id="ErrorAddressZipcodeLabel" class="field-validation-error" data-valmsg-for="ErrorAddressZipcode" data-valmsg-replace="true">@T("Address.InvalidZipCode")</span>
+                    }
+                    @*}*@
+                </div>
+            }
+        </div>
+        <div class="col-12 col-md-4 space2">
+
+            @if (!Model.AccountCustomer && Model.IsGuest)
+            {
+                <div class="form-group">
+
+                    <label asp-for="PhoneNumber" asp-postfix=":" class="address-box-firs-name"></label>
+                    <input asp-for="PhoneNumber" onkeyup="validatePhoneEmpety(this)" class="form-control address-box-form-input"
+                           maxlength="10" type="text" autocomplete="off" onkeypress="return isNumber(event)" onchange="checkDigit(this)" />
+                    @*<div id="PhoneNumberValidate" class="field-validation-error">@T("account.fields.phone.required")</div>*@
+                    @if (Model.PhoneRequired)
+                    {
+                        @*<nop-required />*@
+                    }
+                    <span asp-validation-for="PhoneNumber" id="phoneValidate"></span>
+
+                    <span id="PhoneNumberValidate" class="field-validation-error displaynone">
+                        Please enter at least 10 characters.
+                    </span>
+                </div>
+
+
+            }
+            else
+            {
+                if (Model.CountryEnabled)
+                {
+                    <div class="form-group">
+                        <label asp-for="CountryId" asp-postfix=":" class="address-box-firs-name"></label>
+                        <select asp-for="CountryId" asp-items="Model.AvailableCountries" class="form-control"
+                                data-trigger="country-select"
+                                data-url="@(Url.RouteUrl("GetStatesByCountryId"))"
+                                data-stateprovince="#@Html.IdFor(model => model.StateProvinceId)"
+                                data-loading="#states-loading-progress"></select>
+                        @*<nop-required />*@
+                        <span asp-validation-for="CountryId"></span>
+                    </div>
+                }
+            }
+
+
+        </div>
+    </div>
+    @if (!Model.AccountCustomer && Model.IsGuest)
+    {
+        <div class="row">
+            <div class="col-12 col-md-2 space1"></div>
+            <div class="col-12 col-md-4 space2">
+                @if (Model.CountryEnabled)
+                {
+                    <div class="form-group">
+                        <label asp-for="CountryId" asp-postfix=":" class="address-box-firs-name"></label>
+                        <select asp-for="CountryId" asp-items="Model.AvailableCountries" class="form-control"
+                                data-trigger="country-select"
+                                data-url="@(Url.RouteUrl("GetStatesByCountryId"))"
+                                data-stateprovince="#@Html.IdFor(model => model.StateProvinceId)"
+                                data-loading="#states-loading-progress"></select>
+                        @*<nop-required />*@
+                        <span asp-validation-for="CountryId"></span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+
+    @if (!Model.IsGuest)
+    {
+        <div class="row">
+            <div class="col-12 col-md-2 space1"></div>
+            <div class="col-12 col-md-4 space2">
+                @if (!Model.IsGuest)
+                {
+                    Model.PhoneNumber = "";
+                    <div class="form-group">
+
+                        <label asp-for="PhoneNumber" asp-postfix=":" class="address-box-firs-name"></label>
+                        <input asp-for="PhoneNumber" onkeyup="validatePhoneEmpety(this)" class="form-control address-box-form-input" maxlength="10" type="text" autocomplete="off" onkeypress="return isNumber(event)" onchange="checkDigit(this)"
+                               minlength="10" />
+                        <div id="PhoneNumberValidate" class="field-validation-error">@T("account.fields.phone.required")</div>
+                        @if (Model.PhoneRequired)
+                        {
+                            @*<nop-required />*@
+                        }
+
+                        @if (Model.ValidLengthPhoneNumber)
+                        {
+                            <span id="PhoneNumberValidateErrorless" class="field-validation-error">
+                                Please enter at least 10 characters.
+                            </span>
+                        }
+                        else
+                        {
+                            <span asp-validation-for="PhoneNumber" id="phoneValidate"></span>
+                        }
+
+
+                    </div>
+                }
+            </div>
+
+        </div>
+
+    }
+
+    <div class="row" style=" margin-left: 7px;">
+        <div class="col-12 col-md-2 space1"></div>
+        <div class="form-group" style="margin-top: 30px;">
+            <div class="inputs">
+                @if (Model.AccountCustomer)
+                {
+                    <input onclick="SavedAddressAccount()" asp-for="Saveaddresstomyaccount" style=" float: left;  margin-top: 3px;" />
+                    <span asp-validation-for="Saveaddresstomyaccount"></span>
+                    <label class="address-box-firs-name" style=" margin-left: 10px;">@T("Checkout.SaveAddressToMyAccount")</label>
+                }
+            </div>
+        </div>
+    </div>
+    @if (Model.AccountCustomer)
+    {
+        <div class="row isBillingSaved">
+            <div class="col-12 col-md-2 space1"></div>
+            <div class="col-12 col-md-4 space2 isBillingDiv">
+                <div class="inputs">
+                    <input asp-for="IsDefaultBilling" style="margin-top: -10px; margin-right: 12px; margin-left: 2px; " disabled />
+                    <label style="display: contents;">@T("Account.Fields.IsBilling"):</label>
+
+                    <span asp-validation-for="IsDefaultBilling"></span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 space2 isShippingDiv">
+
+                <div class="form-group">
+
+                    <div class="inputs">
+                        <input asp-for="IsDefaultShipping" style="margin-top: -10px; margin-right: 12px; margin-left: 2px; " disabled />
+                        <label style="display: contents;">@T("Account.Fields.IsShipping")</label>
+
+                        <span asp-validation-for="IsDefaultShipping"></span>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-12 col-md-2 space1"></div>
+
+            <input hidden asp-for="PopupOpen" id="popupOneInput" />
+        </div>
+    }
+
+        <div class="row shippingBilling">
+            <div class="col-12 col-md-2 space1"></div>
+            <div class="col-12 col-md-4 space2">
+                <div class="inputs">
+                    <label>@T("Account.Fields.IsBilling"):</label>
+                    <input asp-for="IsBilling" />
+                    <span asp-validation-for="IsBilling"></span>
+                </div>
+            </div>
+            <div class="col-12 col-md-4 space2">
+
+                <div class="form-group">
+
+                    <div class="inputs">
+                        <label>@T("Account.Fields.IsShipping"):</label>
+                        <input asp-for="IsShipping" />
+                        <span asp-validation-for="IsShipping"></span>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-12 col-md-2 space1"></div>
+
+            <input hidden asp-for="PopupOpen" id="popupOneInput" />
+        </div>
+
+
+        @if (Model.CustomAddressAttributes.Count > 0)
+        {
+            @await Html.PartialAsync("_AddressAttributes", Model.CustomAddressAttributes)
+        }
+    </div>
+
+<script>
+
+    var saveAddressCheckbox = document.getElementById('BillingNewAddress_Saveaddresstomyaccount');
+    var isBillingInput = document.getElementById('BillingNewAddress_IsDefaultBilling');
+
+    if (saveAddressCheckbox) {
+        if (isBillingInput) {
+            if (saveAddressCheckbox.checked) {
+                isBillingInput.disabled = false;
+            } else {
+                isBillingInput.disabled = true;
+            }
+        }
+    }
+
+
+    var saveShippingAddressCheckbox = document.getElementById('ShippingNewAddress_Saveaddresstomyaccount');
+    var isShippingInput = document.getElementById('ShippingNewAddress.IsDefaultShipping');
+    var isShippingInput2 = document.getElementById('ShippingNewAddress_IsDefaultShipping');
+
+    if (saveShippingAddressCheckbox) {
+        if (isShippingInput) {
+            if (saveShippingAddressCheckbox.checked) {
+                isShippingInput.disabled = false;
+            } else {
+                isShippingInput.disabled = true;
+            }
+        }
+    }
+
+
+    function SavedAddressAccount() {
+        var saveAddressCheckbox = document.getElementById('BillingNewAddress_Saveaddresstomyaccount');
+        var isBillingInput = document.getElementById('BillingNewAddress_IsDefaultBilling');
+
+                if (saveAddressCheckbox) {
+                    if (isBillingInput) {
+                        if (saveAddressCheckbox.checked) {
+                            isBillingInput.disabled = false;
+                        } else {
+                            isBillingInput.disabled = true;
+                        }
+                    }
+                }
+
+        var saveShippingAddressCheckbox = document.getElementById('ShippingNewAddress_Saveaddresstomyaccount');
+        var isShippingInput = document.getElementById('ShippingNewAddress.IsDefaultShipping');
+        var isShippingInput2 = document.getElementById('ShippingNewAddress_IsDefaultShipping');
+
+                if (saveShippingAddressCheckbox) {
+                    if (isShippingInput) {
+                        if (saveShippingAddressCheckbox.checked) {
+                            isShippingInput.disabled = false;
+                        } else {
+                            isShippingInput.disabled = true;
+                        }
+                    }
+                }
+
+                //var saveShippingAddressCheckbox = document.getElementById('saveaddresstomyaccount');
+                //var isShippingInput = document.getElementById('ShippingNewAddress_saveShippingaddresstomyaccount');
+
+                //if (saveShippingAddressCheckbox) {
+                //    if (isShippingInput) {
+                //        if (saveShippingAddressCheckbox.checked) {
+                //            isShippingInput.disabled = false;
+                //        } else {
+                //            isShippingInput.disabled = true;
+                //        }
+                //    }
+                //}
+            }
+
+
+    $("#BillingNewAddress.PhoneNumber").attr("autocomplete", "off");
+    //var myInput = document.getElementById("BillingNewAddress.PhoneNumber");
+    //myInput.autocomplete = "off";
+
+    if ((window.location.href.indexOf("addressedit") > -1) || (window.location.href.indexOf("AddressAdd") > -1)) {
+        //alert("your url contains the name franky");
+        $('#phone-div').html('');
+    }
+
+    function validatePhoneEmpety(t) {
+        if (!t.value.length >= 10) {
+            $("#PhoneNumberValidateErrorless").removeClass("displaynone");
+        } else {
+            $("#PhoneNumberValidateErrorless").addClass("displaynone");
+        }
+    }
+
+    function validateStateEmpety(t) {
+        if (!t.value) {
+            $("#StateValidate").css("display", "block");
+        } else {
+            $("#StateValidate").css("display", "none");
+        }
+    }
+    function ValidateZipCode(sZip) {
+
+        $('#billing-new-address-form .validation-summary-errors li').html('');
+        $('#shipping-new-address-form .validation-summary-errors li').html('');
+    }
+
+    function isValidUSZip(sZip) {
+        return /^\d{5}(-\d{4})?$/.test(sZip);
+    }
+
+    function checkDigit(event) {
+        var str = document.getElementById(event.id).value;
+        for (var i = 0; i < str.length; i++) {
+            if (isNaN(str.charAt(i))) { //is not number
+                document.getElementById(event.id).value = "";
+            }
+        }
+
+        var phone = $('#ShippingNewAddress_PhoneNumber').val();
+        if (phone == "") {
+            $("#phoneValidate").html("");
+        }
+    }
+    function isNumber(evt) {
+        evt = (evt) ? evt : window.event;
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+        return true;
+    }
+
+
+    $('#ShippingNewAddress_Saveaddresstomyaccount').click(function () {
+        // Close the popup dialog
+
+        var saveShippingAddressCheckbox = document.getElementById('ShippingNewAddress_Saveaddresstomyaccount');
+        var isShippingInput = document.getElementById('ShippingNewAddress.IsDefaultShipping');
+        var isShippingInput2 = document.getElementById('ShippingNewAddress_IsDefaultShipping');
+
+        if (saveShippingAddressCheckbox) {
+            if (isShippingInput2) {
+                if (saveShippingAddressCheckbox.checked) {
+                    isShippingInput2.disabled = false;
+                } else {
+                    isShippingInput2.disabled = true;
+                }
+            }
+        }
+    });
+
+
+</script>
+
+@{
+
+    var isShippingSaved = false;
+    var isBillingSaved = false;
+    var isMyAccount = false;
+    if (ViewBag.CandidateAddress != null)
+    {
+        var addressList = JsonConvert.DeserializeObject(ViewBag.CandidateAddress);
+    }
+    if (ViewBag.isShippingSaved != null && ViewBag.isShippingSaved)
+    {
+        isShippingSaved = true;
+    }
+
+    if (ViewBag.isBillingSaved != null && ViewBag.isBillingSaved)
+    {
+        isBillingSaved = true;
+    }
+
+    if (ViewBag.isMyAccount != null && ViewBag.isMyAccount)
+    {
+        isMyAccount = true;
+    }
+}
+<div id="LoadCandidateAddressList" class="ui-dialog-content ui-widget-content" style="display: none; background-color: rgba(245, 245, 245, .7)  !important; ">
+    <div class="page topic-page" id="ph-topic">
+        <div class="page-title" id="ph-title">
+            <h1 class="colorGeneralTextRed">@T("checkout.addressverification")</h1>
+</div>
+        <div class="row justify-content-center">
+            <div class="wop col-12 col-sm-11 col-md-11 col-lg-11" style=" padding-left: 0;">
+                <div id="addressVerificationPopup"></div>
+                <p style="text-align: center; display: inline-table;">
+                    <input id="KeepOriginal" class="blue" type="button" value="@T("checkout.address.button.KeepOriginal")">
+                    <input id="UseCorrectedAddress" class="blue" type="button" value="@T("checkout.address.button.Confirm")">
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@{
+     
+
+    if (ViewBag.CandidateAddress != null)
+    {
+
+    <script type="text/javascript">
+                document.getElementById("popupOneInput").value = true;
+                $(function () {
+                // Function to open the address verification popup
+                    function openAddressVerificationPopup() {
+                        if (@Model.PopupOpen=true) {
+                            // Deserialize the JSON string stored in ViewBag.CandidateAddress
+                            var addressList = @Html.Raw(ViewBag.CandidateAddress);
+
+                            $('#addressVerificationContent').remove();
+
+                            // Create a container for the popup content
+                            var content = '<div id="addressVerificationContent">';
+
+                            // Iterate over each address in the list and construct the content
+                            addressList.forEach(function (address) {
+                                content += '<div class="pac-item container"><span class="RecommendedAddress"> Recommended Address:</span > <br/>' +
+                                    '    <div class="pac-itemText " style=" padding - bottom: 12px;">' + address['Address1'] + ' </div>' +
+                                    '    <div class="pac-itemText " style="padding - bottom: 12px;">' + address['City'] + ', ' + address['StateProvince']['Abbreviation'] + ' '+address['ZipPostalCode'] + ' </div >' +
+                                    '    <a href="#" class="useAddressLink" data-address="' + address['Address1'] + ', ' + address['City'] + ', ' + address['StateProvinceId'] + ', ' + address['ZipPostalCode'] + '">Use this address</a></div>';
+                            });
+                            content += '</div>';
+                            $('#addressVerificationPopup').html("");
+
+                            // Append the content to the addressVerificationPopup container
+                            $('#addressVerificationPopup').html(content);
+
+                            // Open the popup dialog
+                            $('#LoadCandidateAddressList').dialog('open');
+                            // Open the popup dialog
+                            $('#LoadCandidateAddressList').dialog('open');
+                        }
+                }
+
+                // Initialize the dialog
+                $('#LoadCandidateAddressList').dialog({
+                    autoOpen: false, // Do not open the dialog automatically
+                    modal: true, // Make the dialog modal
+                    width: '30%', // Set the width automatically
+                    maxHeight: $(window).height() - 20, // Set the maximum height
+                    title: 'Address Verification', // Set the dialog title
+                    position: { my: 'center', at: 'center', of: window },
+                    close: function (event, ui) {
+                        $(this).dialog('destroy').remove(); // Close and destroy the dialog on close
+                    },
+                    id: "myDialog",
+                    open: function (event, ui) {
+                        $('.ui-dialog').css('background-color', 'rgb(255 254 255 / 75%)  !important');
+                    },
+                    dialogClass: 'custom-dialog',
+                });
+
+                // Call the function to open the address verification popup
+                openAddressVerificationPopup();
+
+
+            // Function to handle click event of "Keep Original" button
+            $('#KeepOriginal').click(function () {
+                // Close the popup dialog
+                $('#LoadCandidateAddressList').dialog('close');
+                var pacContainers = document.querySelectorAll('.pac-container');
+                pacContainers.forEach(function (element) {
+                    element.remove();
+                });
+
+                document.getElementById("popupOneInput").value = false;
+            });
+
+                $('#UseCorrectedAddress').click(function () {
+                    if ($('.useAddressLink.active').length === 0) {
+                        alert('Please select an address.');
+                        return;
+                    }
+
+                    replaceInputs();
+                // Close the popup dialog
+                    $('#LoadCandidateAddressList').dialog('close');
+
+                    var pacContainers = document.querySelectorAll('.pac-container');
+                    pacContainers.forEach(function (element) {
+                        element.remove();
+                    });
+            });
+            // Function to replace inputs with corrected address data
+                function replaceInputs() {
+                // Retrieve corrected address data from the clicked link
+                var correctedAddress = $('.useAddressLink.active').data('address');
+
+                // Split the address data
+                var addressParts = correctedAddress.split(', ');
+                var address1 = addressParts[0];
+                var city = addressParts[1];
+                var state = addressParts[2];
+                var postalCode = addressParts[3];
+
+
+
+
+                    if (@isShippingSaved=true) {
+                        // Replace inputs with corrected address data
+                        $('#ShippingNewAddress_Address1').val(address1);
+                        $('#ShippingNewAddress_City').val(city);
+                        $('#ShippingNewAddress_ZipPostalCode').val(postalCode);
+                        $('#ShippingNewAddress_StateProvinceId').val(state);
+                    }
+                     if (@isBillingSaved=true) {
+                        // Replace inputs with corrected address data
+                         $('#BillingNewAddress_Address1').val(address1);
+                        $('#BillingNewAddress_City').val(city);
+                        $('#BillingNewAddress_ZipPostalCode').val(postalCode);
+                        $('#BillingNewAddress_StateProvinceId').val(state);
+                    }
+
+                    if (@isMyAccount=true) {
+                        // Replace inputs with corrected address data
+                        $('#Address_Address1').val(address1);
+                        $('#Address_City').val(city);
+                        $('#Address_ZipPostalCode').val(postalCode);
+                        $('#Address_StateProvinceId').val(state);
+                    }
+
+                    var saveShippingAddressCheckbox = document.getElementById('ShippingNewAddress_Saveaddresstomyaccount');
+                    var isShippingInput = document.getElementById('ShippingNewAddress.IsDefaultShipping');
+                    var isShippingInput2 = document.getElementById('ShippingNewAddress_IsDefaultShipping');
+
+                    if (saveShippingAddressCheckbox) {
+                        if (isShippingInput) {
+                            saveShippingAddressCheckbox.disabled = false;
+                            isShippingInput.disabled = false;
+                        }
+                    }
+                   
+
+            }
+
+
+            $('.useAddressLink').click(function (e) {
+                e.preventDefault();
+                $('.useAddressLink').removeClass('active');
+                $(this).addClass('active');
+            });
+
+            });
+    </script>
+        }
+}
+
+<script>
+
+    function validateAddressChange() {
+        var address1Value = document.getElementById("BillingNewAddress_Address1");
+
+        // Check if the value is not empty
+        if (address1Value) {
+            // Get the value of the input element
+            var inputValue = address1Value.value.trim();
+
+            // Get the hidden input element by ID
+            var popupOpenInput = document.getElementById("popupOneInput");
+
+            // Check if the hidden input element exists
+            if (popupOpenInput) {
+                // Set the value of the hidden input based on whether the address input is empty or not
+                popupOpenInput.value = inputValue !== "" ? "true" : "false";
+            } else {
+                console.error("Hidden input element with ID 'PopupOpen' not found.");
+            }
+        } else {
+            var cityValue = document.getElementById("ShippingNewAddress_Address1");
+            if (cityValue) {
+                // Get the value of the input element
+                var inputValue = cityValue.value.trim();
+
+
+                // Get the hidden input element by ID
+                var popupOpenInput = document.getElementById("popupOneInput");
+
+                // Check if the hidden input element exists
+                if (popupOpenInput) {
+                    // Set the value of the hidden input based on whether the address input is empty or not
+                    popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                } else {
+                    console.error("Hidden input element with ID 'PopupOpen' not found.");
+                }
+            } else {
+
+                var cityValue = document.getElementById("Address_Address1");
+                if (cityValue) {
+                    // Get the value of the input element
+                    var inputValue = cityValue.value.trim();
+
+
+                    // Get the hidden input element by ID
+                    var popupOpenInput = document.getElementById("popupOneInput");
+
+                    // Check if the hidden input element exists
+                    if (popupOpenInput) {
+                        // Set the value of the hidden input based on whether the address input is empty or not
+                        popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                    } else {
+                        console.error("Hidden input element with ID 'PopupOpen' not found.");
+                    }
+                }
+                else {
+                    console.error("Input element with ID 'Address_Address1' not found.");
+                }
+            }
+        }
+    }
+
+    function handleInputChange(inputValue) {
+        // Call the ValidateZipCode function with the input value
+        ValidateZipCode(inputValue.value);
+
+        var zipValue = document.getElementById("BillingNewAddress_ZipPostalCode");
+
+        // Check if the value is not empty
+        if (zipValue) {
+            // Get the value of the input element
+            var inputValue = zipValue.value.trim();
+
+            // Get the hidden input element by ID
+            var popupOpenInput = document.getElementById("popupOneInput");
+
+            // Check if the hidden input element exists
+            if (popupOpenInput) {
+                // Set the value of the hidden input based on whether the address input is empty or not
+                popupOpenInput.value = inputValue !== "" ? "true" : "false";
+            } else {
+                console.error("Hidden input element with ID 'PopupOpen' not found.");
+            }
+        } else {
+            var cityValue = document.getElementById("ShippingNewAddress_ZipPostalCode");
+            if (cityValue) {
+                // Get the value of the input element
+                var inputValue = cityValue.value.trim();
+
+
+                // Get the hidden input element by ID
+                var popupOpenInput = document.getElementById("popupOneInput");
+
+                // Check if the hidden input element exists
+                if (popupOpenInput) {
+                    // Set the value of the hidden input based on whether the address input is empty or not
+                    popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                } else {
+                    console.error("Hidden input element with ID 'PopupOpen' not found.");
+                }
+            } else {
+
+                var cityValue = document.getElementById("Address_ZipPostalCode");
+                if (cityValue) {
+                    // Get the value of the input element
+                    var inputValue = cityValue.value.trim();
+
+
+                    // Get the hidden input element by ID
+                    var popupOpenInput = document.getElementById("popupOneInput");
+
+                    // Check if the hidden input element exists
+                    if (popupOpenInput) {
+                        // Set the value of the hidden input based on whether the address input is empty or not
+                        popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                    } else {
+                        console.error("Hidden input element with ID 'PopupOpen' not found.");
+                    }
+                }
+                else {
+                    console.error("Input element with ID 'Address_ZipPostalCode-error' not found.");
+                }
+            }
+        }
+    }
+
+    // Function to handle change event of the input field
+    function CityhandleInputChange(input) {
+        // Call the validateCity function
+        validateCity();
+
+        var cityValue = document.getElementById("BillingNewAddress_City");
+
+        // Check if the value is not empty
+        if (cityValue) {
+            // Get the value of the input element
+            var inputValue = cityValue.value.trim();
+
+
+            // Get the hidden input element by ID
+            var popupOpenInput = document.getElementById("popupOneInput");
+
+            // Check if the hidden input element exists
+            if (popupOpenInput) {
+                // Set the value of the hidden input based on whether the address input is empty or not
+                popupOpenInput.value = inputValue !== "" ? "true" : "false";
+            } else {
+                console.error("Hidden input element with ID 'PopupOpen' not found.");
+            }
+        } else {
+            var cityValue = document.getElementById("ShippingNewAddress_City");
+            if (cityValue) {
+                // Get the value of the input element
+                var inputValue = cityValue.value.trim();
+
+
+                // Get the hidden input element by ID
+                var popupOpenInput = document.getElementById("popupOneInput");
+
+                // Check if the hidden input element exists
+                if (popupOpenInput) {
+                    // Set the value of the hidden input based on whether the address input is empty or not
+                    popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                } else {
+                    console.error("Hidden input element with ID 'PopupOpen' not found.");
+                }
+            } else {
+
+                var cityValue = document.getElementById("Address_City");
+                if (cityValue) {
+                    // Get the value of the input element
+                    var inputValue = cityValue.value.trim();
+
+
+                    // Get the hidden input element by ID
+                    var popupOpenInput = document.getElementById("popupOneInput");
+
+                    // Check if the hidden input element exists
+                    if (popupOpenInput) {
+                        // Set the value of the hidden input based on whether the address input is empty or not
+                        popupOpenInput.value = inputValue !== "" ? "true" : "false";
+                    } else {
+                        console.error("Hidden input element with ID 'PopupOpen' not found.");
+                    }
+                }
+                else {
+                    console.error("Input element with ID 'Address_Address1' not found.");
+                }
+            }
+        }
+        
+    }
+</script>

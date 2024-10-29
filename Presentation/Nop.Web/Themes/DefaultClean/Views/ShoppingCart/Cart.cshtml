@@ -1,0 +1,62 @@
+﻿
+@model ShoppingCartModel
+
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.ShoppingCart").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-shopping-cart-page");
+}
+@if (!Model.OnePageCheckoutEnabled)
+{
+    @await Component.InvokeAsync("CheckoutProgress", new { step = CheckoutProgressStep.Cart })
+}
+
+<link rel="preconnect" href="https://fonts.gstatic.com">
+@*<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">*@
+<link rel="preconnect" href="https://fonts.gstatic.com">
+@*<link href="https://fonts.googleapis.com/css2?family=Lato&family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">*@
+<div class="row d-flex justify-content-center colorGeneralBackgroundGray pb-3 title-cart-version-mobile">
+    <div class="col-sm-11 col-md-11 col-lg-11">
+        <div class="row mt-5 title-cart-zone-version-mobile">
+            <div class="col-lg-12">
+                <h1>@T("account.shoppingcart")</h1>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row d-flex justify-content-center pb-3 shoppingCartPage">
+    <div class="col-sm-10 col-md-10 col-lg-10">
+        @await Component.InvokeAsync("OrderSummary", new { overriddenModel = Model })
+    </div>
+</div>
+
+<!--<div class="page shopping-cart-page">-->
+@*<div class="checkout-page-title-summary">
+        <p>@T("checkout.ordersummary")</p>
+    </div>*@
+<!--<div class="page-body">
+
+    </div>
+</div>-->
+
+<script>
+    $('#tableShoppingCart').removeClass('col-lg-8')
+    $('#tableShoppingCart').addClass('col-lg-12')
+    $(".shoppingCartPage .shipping-cost .value-summary").html("");
+    $(".shoppingCartPage .shipping-cost .value-summary").html("Calculated during checkout");
+
+    $(".selected-shipping-method").html("");
+    $(".shoppingCartPage .shipping-cost .value-summary").css("font-weight", "100");
+    $(".shoppingCartPage .tax-value #OrderTax").html("");
+    $(".shoppingCartPage .tax-value #OrderTax").html("Calculated during checkout");
+    $(".shoppingCartPage .tax-value #OrderTax").css("font-weight", "100");
+
+
+    $(".shoppingCartPage .total").html("");
+    $(".shoppingCartPage .total").html("Calculated during checkout");
+
+</script>
+

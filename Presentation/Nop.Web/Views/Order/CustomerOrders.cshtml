@@ -1,0 +1,168 @@
+﻿@model CustomerOrderListModel
+@{
+    Layout = "_ColumnsTwo";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Account").Text);
+
+    //page class
+    Html.AppendPageCssClassParts("html-account-page");
+    Html.AppendPageCssClassParts("html-order-list-page");
+}
+@section left
+{
+    @await Component.InvokeAsync("CustomerNavigation", new { selectedTabId = CustomerNavigationEnum.Orders })
+}
+
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato&family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">
+
+<script>
+    function submitEvent() {
+        document.customerOrderForm.submit();
+    }
+</script>
+
+@using (Html.BeginForm("history", "order", FormMethod.Post, new { id = "customerOrderForm", name = "customerOrderForm" }))
+{
+    <div class="page account-page order-list-page">
+        <br />
+        <br />
+        <div class="page_title">
+            <h1>@T("MyOrders")</h1>
+        </div>
+        <div class="row page-sort">
+            <div class="col-md-3"></div>
+            <div class="col-md-3 text-left">
+                <i class="nn- nn-arrow-random p-3"></i><label class="p-3">&nbsp;&nbsp;Sort by Payment status</label><br />
+                <div class="form-sort">
+                    @Html.DropDownListFor(m => m.OrdersFilter.PaymentStatus, Model.PaymentStatusList, new { onchange = "submitEvent()" })
+                    @*<select onchange="paymentStatusOnChange(this.value);" id="paymentStatus">
+                            <option value="Paid">Paid</option>
+                            <option value="Unpaid">Unpaid</option>
+                        </select>*@
+                    <div class="select_arrow"><i class="nn- nn-chevron-down arrow-sort"></i></div>
+                </div>
+            </div>
+            <div class="col-md-3 text-left">
+                <i class="nn- nn-arrow-random p-3"></i><label class="p-3">&nbsp;Sort by state</label><br />
+                <div class="form-sort">
+                    @Html.DropDownListFor(m => m.OrdersFilter.OrderStatus, Model.OrderStatusList, new { onchange = "submitEvent()" })
+                    @*<select>
+                            <option value="Completed">Completed </option>
+                            <option value="Order processing">Order processing</option>
+                            <option value="Ready for Pick Up">Ready for Pick Up</option>
+                            <option value="Ready for delivery">Ready for delivery</option>
+                            <option value="Ready for UPS pickup">Ready for UPS pickup</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Completed and Billed">Completed and Billed</option>
+                        </select>*@
+                    <div class="select_arrow"><i class="nn- nn-chevron-down arrow-sort"></i></div>
+                </div>
+            </div>
+            <div class="col-md-3 text-left">
+                <i class="nn- nn-arrow-random p-3"></i> <label class="p-3">&nbsp;Search by order</label><br />
+                <div class="form-sort">
+                    @Html.TextBoxFor(m => m.OrdersFilter.CustomOrderNumber, new { placeholder = "000000000000" })
+                    @*<input placeholder="000000000000" type="submit" />*@
+                    <div class="select_arrow" onclick="submitEvent()"><i class="nn- nn-search arrow-sort"></i></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row target-order-list">
+            @if (Model.Orders.Count > 0)
+            {
+                @foreach (var order in Model.Orders)
+                {
+                    <div class="col-md-12 card-order">
+                        <p class="card-order-title">Order</p>
+                        <p class="card-order-text">
+                            #
+                            @if (order.TransId != null)
+                            {
+                                @order.TransId
+
+                            }
+                            else
+                            {
+                                @order.Id
+                            }
+                        </p>
+                        <p class="card-order-title"><br />@T("Invoice")</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="card-order-text2">
+                                    #INV129409
+
+                                </p>
+
+             <p class="card-order-title"><br />@T("Status")</p>
+
+                                @if (order.OrderStatus != "Pending")
+                                        {
+                                    <div class="btn btn-info btn-none">@order.OrderStatus</div>
+                                    }
+                                else
+                                {
+                                    <div class="btn btn-danger btn-none">@order.OrderStatus</div>
+                                }
+
+                            <p class="card-order-title"><br /><br />@T("PaymentStatus")</p>
+                                @if (order.PaymentStatus != "Pending")
+                                {
+                                    <div class="btn btn-success btn-none">@order.PaymentStatus</div>
+                                }
+                                else
+                                {
+                                    <div class="btn btn-danger btn-none">@order.PaymentStatus</div>
+                                }
+
+
+                                @*@if (order.PaymentStatus != "Pending")
+                                    {
+                                        <div class="btn btn-info btn-none">Completed and Billed</div>
+                                        <p class="card-order-title"><br /><br />Payment Status</p>
+                                        <div class="btn btn-success btn-none">@order.PaymentStatus</div>
+                                    }
+                                    @if (order.PaymentStatus == "Pending")
+                                    {
+                                        <div class="btn btn-danger btn-none">Pending to pay</div>
+                                        <p class="card-order-title"><br /><br />Payment Status</p>
+                                        <div class="btn btn-danger btn-none">@order.PaymentStatus</div>
+                                    }*@
+                            </div>
+                            <div class="col-md-6 details-order-rigth">
+                                <p class="card-order-title">@T("OrderDate") </p>
+                                <p class="card-order-text3">@order.CreatedOn.ToString("D")</p>
+                                <p class="card-order-title"><br />@T("Totalproducts")</p>
+                                <p class="card-order-text3">@order.OrderProducts</p>
+                                <p class="card-order-title"><br />@T("Total")</p>
+                                <p class="card-order-text-danger">@order.OrderTotal</p>
+                                <br />
+                                <div class="row">
+                                    <button class="btn btn-shopping" onclick="setLocation('@Url.RouteUrl("ReOrder", new { orderId = order.Id })')"> <i class="nn- nn-car" style="margin-right:10px;"></i>@T("OrderAgain") </button>
+                                   
+                                    @if (order.OrderStatus == "Pending")
+                                    {
+                                        <button class="btn btn-payhome">@T("PayHere")</button>
+                                    }
+                                    <a class="btn btn-details" href="@Url.RouteUrl("OrderDetails", new { orderId = order.Id })">@T("ViewDetails")</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-data" style="text-align:center;margin-top:90px;">
+                    @T("Account.CustomerOrders.NoOrders")
+                </div>
+            }
+        </div>
+    </div>
+}

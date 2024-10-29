@@ -1,0 +1,723 @@
+﻿@model CustomerOrderListModel
+@{
+    <div class="order-zone-desktop">
+        @foreach (var order in Model.Orders)
+        {
+
+
+        <div class="row mb-5">
+            <div class="col-lg-12">
+                <div class="row colorGeneralBackgroundGray pt-2 pl-4 pr-4 pb-2" style="border-radius: 8px 8px 0px 0px;">
+                    <div class="col-lg-6">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <p class="card-order-title mb-2">@T("order.OrderDate") </p>
+                                <p class="card-order-text3 text-Lato">@order.CreatedOn.ToString("D")</p>
+                            </div>
+                            <div class="col-lg-4">
+
+                                <p class="card-order-title mb-2">@T("order.Totalproducts") </p>
+                                <p class="card-order-text3 text-Lato">@order.OrderProducts</p>
+                            </div>
+                            <div class="col-lg-4">
+                                <p class="card-order-title mb-0">@T("order.Total")</p>
+                                <p class="card-order-text-danger text-Lato"> $<span class="card-order-text-danger text-Lato" id="total_@order.Id">@order.OrderTotal</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="row">
+                            <div class="col-lg-6 text-center">
+                                @if (order.CompanyName != null)
+                                {
+                                    <p class="card-order-title"><strong>@order.CompanyName</strong></p>
+                                    <p class="card-order-title">@T("Order.Order") <strong class="text-Lato">#@order.Id</strong></p>
+                                }
+
+                            </div>
+                            <div class="col-lg-6 text-right">
+                                @if (order.CompanyName == null)
+                                {
+                                    <p class="card-order-title text-Lato">@T("Order.Order") <strong>#@order.Id</strong></p>
+                                }
+
+                                @if (!string.IsNullOrEmpty(order.TransId))
+                                {
+                                    <p class="card-order-title text-Lato">@T("Order.NsNum") <strong class="text-Lato">@order.TransId</strong></p>}
+
+
+                                @if (!string.IsNullOrEmpty(order.InvoiceNumber) && order.InvoiceNumber != "0" && order.InvoiceNumber != "")
+                                {
+                                    @if (order.InvoiceNumber.StartsWith("CS"))
+                                    {
+                                        <p class="card-order-title text-Lato">@T("order.CashSale")  <strong>@order.InvoiceNumber </strong></p> }
+                                    else
+                                    {
+                                        <p class="card-order-title text-Lato"> <strong>@order.InvoiceNumber </strong></p>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row pt-2 pl-4 pr-4 pb-5" style="border-radius: 0px 0px 8px 8px; background: rgba(245, 245, 245, 0.7);">
+                    <div class="col-lg-6">
+                        <div class="row">
+
+                            <div class="col-lg-4">
+                                <p class="card-order-title mb-2">@T("order.ShippingMethod")</p>
+                                <p class="card-order-text3 text-Lato">@order.ShippingMethod</p>
+                            </div>
+
+                            <div class="col-lg-4">
+                                <div class="card-order-title">@T("order.ShippingStatus") </div>
+
+                                @if (order.ShippingMethod == "Delivery on N&N Truck")
+                                {
+
+                                    @if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                                    {
+                                        <div class="btn btn-yellow btn-none" style=" cursor: text;">
+                                            @T("order.shippingStatusProcessing")
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        if (order.ShippingStatus == "Shipped" && !string.IsNullOrEmpty(order.NNDeliveryDate))
+                                        {
+                                            var date = Convert.ToDateTime(order.NNDeliveryDate).ToString("MM-dd-yyyy");
+                                            <div class="" style="padding: 0;padding-left: 5px;padding-right: 5px;">
+                                                <span class="card-order-title mb-2" style="font-size: 14px;color: #546E7A;  font-weight: 900;  ">@T("order.EstDate"):</span>
+                                                <strong class="card-order-text3 text-Lato" style="font-size: 14px; font-weight: 600;color: #546E7A;">@date</strong>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            if (order.ShippingStatus == "Shipped")
+                                            {
+                                                <div class="btn btn-success btn-none" style=" cursor: text; ">
+                                                    @order.ShippingStatus
+                                                </div>
+
+                                                <div class="col-lg-12" style="padding: 0;">
+
+                                                    @if (order.ShipmentDetails != null)
+                                                    {
+                                                        if (!string.IsNullOrEmpty(order.ShipmentDetails.TrackingNumberUrl))
+                                                        {
+                                                            <a href="@order.ShipmentDetails.TrackingNumberUrl" target="_blank" class="margin-l-10" style="color: #3c8dbc;">View tracking info</a>}
+                                                    }
+                                                </div>
+
+                                            }
+                                            else
+                                            {
+                                                <div class="btn btn-yellow btn-none" style=" cursor: text;">
+                                                    @T("order.ReadyForDelivery")
+                                                </div>
+
+                                            }
+                                        }
+                                    }
+
+                                }
+                                else
+                                {
+                                    if (order.ShippingMethod == "Customer Pick Up")
+                                    {
+                                        if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                                        {
+                                            <div class="btn btn-yellow btn-none" style=" cursor: text; ">
+                                                @T("order.shippingStatusProcessing")
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            if (order.ShippingStatus == "Shipped")
+                                            {
+                                                <div class="btn btn-success btn-none" style=" cursor: text; ">@T("Completed")</div>
+
+                                                <div class="col-lg-12" style="padding: 0;">
+
+                                                    @if (order.ShipmentDetails != null)
+                                                    {
+                                                        if (!string.IsNullOrEmpty(order.ShipmentDetails.TrackingNumberUrl))
+                                                        {
+                                                            <a href="@order.ShipmentDetails.TrackingNumberUrl" target="_blank" class="margin-l-10" style="color: #3c8dbc;">View tracking info</a>}
+                                                    }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="btn btn-yellow btn-none" style=" cursor: text; ">
+                                                    @order.ShippingStatus
+                                                </div>
+                                            }
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @if (order.ShippingStatus == "Notdelivered")
+                                        {
+                                            @T("order.Notdelivered")
+                                        }
+                                        else
+                                        {
+                                            if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                                            {
+                                                <div class="btn btn-yellow btn-none" style=" cursor: text; ">
+                                                    @T("order.shippingStatusProcessing")
+                                                </div>
+                                            }
+                                            else
+                                            {
+
+                                                if (order.ShippingStatus == "Shipped")
+                                                {
+                                                    <div class="btn btn-success btn-none" style=" cursor: text; ">
+                                                        @order.ShippingStatus
+                                                    </div>
+
+                                                    <div class="col-lg-12" style="padding: 0;">
+
+                                                        @if (order.ShipmentDetails != null)
+                                                        {
+                                                            if (!string.IsNullOrEmpty(order.ShipmentDetails.TrackingNumberUrl))
+                                                            {
+                                                                <a href="@order.ShipmentDetails.TrackingNumberUrl" target="_blank" class="margin-l-10" style="  color: #3c8dbc;padding-left: 10px;font-weight: 900;">View tracking info</a>}
+                                                        }
+
+
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="btn btn-yellow btn-none" style=" cursor: text; ">
+                                                        @order.ShippingStatus
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                }
+
+                            </div>
+
+
+                            <div class="col-lg-4">
+                                @if (order.ShippingStatus == "Ready for Delivery" && !string.IsNullOrEmpty(order.NNDeliveryDate))
+                                {
+                                    var date = Convert.ToDateTime(order.NNDeliveryDate).ToString("MM-dd-yyyy");
+                                    <p class="card-order-title"> &nbsp;</p>
+                                    <div class="" style="padding: 0;padding-left: 5px;padding-right: 5px;">
+                                        <span class="card-order-title mb-2" style="font-size: 14px;color: #546E7A;  font-weight: 900;  ">@T("order.EstDate"):</span>
+                                        <strong class="card-order-text3 text-Lato" style="font-size: 14px; font-weight: 600;color: #546E7A;">@date</strong>
+                                    </div>
+                                }
+                                @if (Model.AccountCustomer)
+                                {
+                                    if (order.ShippingStatus == "Shipped" && order.OrderStatus.Contains("Completed"))
+                                    {
+                                        <p class="card-order-title"> &nbsp;</p>
+                                        <div class="btn btn-success btn-none" style="cursor: text; font-size: 13px">@T("Billed") </div>
+                                        <br />
+                                        <a href="/Order/Invoice" style="  color: #3c8dbc;padding-left: 10px;font-weight: 900;">
+                                            @T("MyOrders.ViewMyInvoices")
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    if (order.ShippingStatus == "Shipped" && order.OrderStatus.Contains("Completed"))
+                                    {
+                                        <p class="card-order-title"> &nbsp;</p>
+                                        <div class="btn btn-success btn-none" style=" cursor: text; ">@T("Paid") </div>
+
+                                    }
+                                }
+
+
+                            </div>
+
+
+
+                            <div class="col-lg-3">
+                                @if (order.ShipmentDetails != null && !string.IsNullOrEmpty(order.ShipmentDetails.DeliveryDateEstimate))
+                                {
+
+                                    <p class="card-order-title">@T("order.DeliveryDateEstimate") </p>
+
+                                    <p class="card-order-text3 text-Lato">@order.ShipmentDetails?.DeliveryDateEstimate</p>}
+                                @*@if (order.ShipmentDetails != null)
+            {
+                if (!string.IsNullOrEmpty(order.ShipmentDetails.TrackingNumberUrl))
+                {
+                    <p class="card-order-title"> &nbsp;</p>
+                    <a href="@order.ShipmentDetails.TrackingNumberUrl" target="_blank" class="margin-l-10" style="color: #3c8dbc;">View tracking info</a>}
+            }*@
+                            </div>
+
+
+                        </div>
+                        
+                    </div>
+                            <div class="col-lg-6">
+                                <div class="row">
+                                    <div class="col-lg-12 text-right mb-3">
+                                        @if (order.PaymentStatus == "Pending")
+                                        {
+                                            <form asp-route="OrderDetails" method="post">
+                                                <input type="hidden" name="orderId" value="@order.Id" />
+                                                <!--<input type="submit" name="repost-payment-standard" value="@T("Order.RetryPayment")" class="btn btn-payhome" />-->
+                                            </form> }
+                                        else
+                                        {
+                                            <a class="btn btn-shopping" onclick="setLocation('@Url.RouteUrl("ReOrder", new { orderId = order.Id })')"> <i class="nn- nn-car mr-2"></i>@T("Order.OrderAgain") </a>}
+                                        <br />
+                                    </div>
+                                    <div class="col-lg-12 text-right mb-3">
+                                        <a class="btn btn-details" href="@Url.RouteUrl("OrderDetails", new { orderId = order.Id })">@T("Order.ViewDetails")</a>
+                                    </div>
+
+                                   
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+        <script>
+
+                var value = document.getElementById("total_@order.Id").innerHTML;
+                var formattedValue = parseFloat(value).toFixed(2);
+                document.getElementById("total_@order.Id").innerHTML = formattedValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        </script>
+
+    }
+        </div>
+}
+
+
+@foreach (var order in Model.Orders)
+{
+<div class="orders-version-mobile-table">
+    <div class="row">
+        <div class="col-12 first">
+            <div><b>@T("order.order")</b></div>
+            <div class="text-Lato">#@order.CustomOrderNumber</div>
+        </div>
+    </div>
+    @if (!string.IsNullOrEmpty(order.TransId))
+    {
+        <div class="row">
+            <div class="col-12 first" style="border-radius: 0px;">
+                <div><b>@T("order.NSNum") </b></div>
+                <div class="text-Lato">#@order.TransId</div>
+            </div>
+        </div>
+    }
+    @if (!string.IsNullOrEmpty(order.InvoiceNumber) && order.InvoiceNumber != "0" && order.InvoiceNumber != "")
+    {
+        @if (order.InvoiceNumber.StartsWith("CS"))
+        {
+
+            <div class="row">
+                <div class="col-12 first" style="border-radius: 0px;">
+                    <div><b>@T("order.CashSale") </b></div>
+                    <div class="text-Lato">@order.InvoiceNumber</div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-12 first" style="border-radius: 0px;">
+                   
+                    <div class="text-Lato">@order.InvoiceNumber</div>
+                </div>
+            </div>
+        }
+    }
+    <div class="row">
+        <div class="col-6 item">
+            <div><b>@T("order.OrderDate")</b></div>
+            <div>@order.CreatedOn.ToString("D")</div>
+        </div>
+        <div class="col-6 item left">
+            <div><b>@T("order.Totalproducts")</b></div>
+            <div>@order.OrderProducts</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 item">
+            <div><b>@T("order.Total")</b></div>
+            <div class="order-price text-Lato">@order.OrderTotal</div>
+        </div>
+    </div>
+    <div class="row">
+
+
+
+        @{ var orderStatus = "Pending";
+            var PaymentStatusInfo = "Unpaid";
+
+            var paymentClass = "btn-danger";
+            var OrderStyle = "btn-info";
+
+            if (!string.IsNullOrEmpty(order.InvoiceNumber))
+            {
+                if (order.PaymentStatus == "Paid")
+                {
+                    PaymentStatusInfo = "Invoiced";
+                }
+
+                else
+                {
+                    PaymentStatusInfo = order.PaymentStatus;
+
+                }
+
+            }
+            else
+            {
+                PaymentStatusInfo = order.PaymentStatus;
+            }
+
+            orderStatus = order.OrderStatus;
+
+            if (order.OrderStatusEnum.ToString() == "Pending")
+            {
+                orderStatus = "Order Processing";
+                OrderStyle = "btn-yellow";
+            }
+
+
+            if (order.OrderStatusEnum.ToString() == "Processing")
+            {
+                orderStatus = "Order Confirmed - Pending fulfillment";
+                OrderStyle = "btn-info";
+            }
+
+            //if (order.OrderStatusEnum.ToString() == "Completed")
+            //{
+            //    orderStatus = "Order Confirmed - Pending fulfillment";
+            //    OrderStyle = "btn-info";
+            //}
+
+            // Si customer.NetSuidId == 0  : Web Account
+            if (Model.IsGuest)
+            {
+                if (order.OrderStatus == "Complete" && order.PaymentStatus == "Paid")
+                {
+                    orderStatus = "Completed";
+                    OrderStyle = "btn-payhome";
+                }
+            }
+            else
+            {
+                // else Si no customer.NetSuidId > 0  : Account Customer
+                if (order.OrderStatus == "Completed" && order.PaymentStatus == "Pending")
+                {
+                    orderStatus = "Completed";
+                    OrderStyle = "btn-payhome";
+                }
+
+                if (order.OrderStatus == "Completed" && order.PaymentStatus == "Paid")
+                {
+                    orderStatus = "Completed and Billed";
+                    OrderStyle = "btn-success";
+                }
+            }
+
+            if (order.PaymentStatus == "Pending")
+            {
+                PaymentStatusInfo = "Unpaid";
+
+                if (order.OrderStatus == "Processing")
+                {
+                    orderStatus = "Order Confirmed - Pending fulfillment";
+                    OrderStyle = "btn-info";
+                }
+            }
+
+            if (order.PaymentStatus == "Paid")
+            {
+                paymentClass = "btn-success";
+
+                if (order.OrderStatus == "Processing")
+                {
+                    orderStatus = "Order Processing";
+                    OrderStyle = "btn-info";
+                }
+
+                if (order.OrderStatus == "Completed")
+                {
+                    orderStatus = "Completed and Billed";
+                    OrderStyle = " btn-success";
+                }
+            }
+
+            if (order.OrderStatus == "Order Processing")
+            {
+                OrderStyle = "btn-yellow";
+            }
+
+            if (order.OrderStatus.Contains("Ready"))
+            {
+                OrderStyle = "btn-info";
+            }
+
+            if (order.OrderStatus.Contains("Completed"))
+            {
+                OrderStyle = "btn-green";
+
+                if (order.PaymentStatus == "Paid")
+                {
+                    orderStatus = "Completed and Billed";
+                    OrderStyle = "btn-success";
+                }
+            }
+
+            if (order.OrderStatus.Contains("Cancelled"))
+            {
+                OrderStyle = "btn-red";
+            } }
+
+        @if (order.ShippingStatus == "ReadyforPickup" || order.ShippingStatus == "ReadyforDelivery" || order.ShippingStatus == "ReadyforUPSPickup")
+        {
+        }
+        else
+        {
+            @if (orderStatus == "Order Confirmed - Pending Billing/Partially Fulfilled" || orderStatus == "Order Confirmed - Pending fulfillment" || orderStatus == "Order Confirmed - Billing/Partially Fulfilled" || orderStatus == "Order Confirmed - Partially Fulfilled" || orderStatus == "Completed and Billed" || orderStatus == "Order Confirmed - Pending Billing")
+            {
+
+            }
+            else
+            {
+                @*<div class="col-12 zone_btn">
+                    <div><center>@T("order.status")</center></div>
+                    <div>
+                        <div class="order-status">
+                            <div class="btn-status btn @OrderStyle btn-none" style=" cursor: text;">@orderStatus</div>
+                        </div>
+                    </div>
+                </div>*@
+            }
+        }
+
+        @if (PaymentStatusInfo == "Paid" && order.InvoiceNumber != "")
+        {
+            PaymentStatusInfo = "Invoiced";
+        }
+
+
+
+        @*@if (orderStatus != "Pending" && orderStatus != "Order Processing")
+        {*@
+
+        @if (order.ShippingMethod == "Delivery on N&N Truck")
+        {
+            @*<div class="col-6 zone_btn">
+                <div><center>@T("order.PaymentStatus")</center></div>
+                <div>
+                    <div class="order-status">
+                        <div class="btn-payment btn @paymentClass btn-none" style=" cursor: text;">@PaymentStatusInfo</div>
+                    </div>
+                </div>
+            </div>*@
+            <div class="col-12 zone_btn">
+                <div><center>@T("order.ShippingStatus")</center></div>
+                <div>
+                    <div class="order-status">
+                        @if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                        {
+                            <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text;">
+                                @T("order.shippingStatusProcessing")
+                            </div>
+                        }
+                        else
+                        {
+                            if (order.ShippingStatus == "Shipped" && !string.IsNullOrEmpty(order.NNDeliveryDate))
+                            {
+                                <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text; ">
+                                    <span class="card-order-title mb-2"  style="color:white">@T("order.EstDate"):</span>
+                                    @{ 
+                                        var date = Convert.ToDateTime(order.NNDeliveryDate).ToString("MM-dd-yyyy");
+                                    }
+                                    <strong class="card-order-text3 text-Lato" style="color:white">@date</strong>
+                                </div>
+                            }
+                            else
+                            {
+                                if (order.ShippingStatus == "Shipped")
+                                {
+                                    <div class="btn-payment btn btn-success btn-none" style=" cursor: text;">
+                                        @order.ShippingStatus
+                                    </div>
+
+                                }
+                                else
+                                {
+                                    <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text; ">
+                                        @T("order.ReadyForDelivery")
+                                    </div>
+                                }
+                            }
+
+
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            @*<div class="col-6 zone_btn">
+                <div><center>@T("order.PaymentStatus")</center></div>
+                <div>
+                    <div class="order-status">
+                        <div class="btn-payment btn @paymentClass btn-none" style=" cursor: text;">@PaymentStatusInfo</div>
+                    </div>
+                </div>
+            </div>*@
+            <div class="col-12 zone_btn">
+                <div><center>@T("order.ShippingStatus")</center></div>
+                <div>
+                    <div class="order-status">
+                        @if (order.ShippingMethod == "Customer Pick Up")
+                        {
+                            if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                            {
+                                <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text;">
+                                    @T("order.shippingStatusProcessing")
+                                </div>
+                            }
+                            else
+                            {
+                                if (order.ShippingStatus == "Shipped")
+                                {
+                                    <div class="btn-payment btn btn-success btn-none" style=" cursor: text;">@T("Completed")</div>
+                                }
+                                else
+                                {
+                                    <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text;">
+                                        @order.ShippingStatus
+                                    </div>
+                                }
+
+                            }
+                        }
+                        else
+                        {
+                            @if (order.ShippingStatus == "Notdelivered")
+                            {
+                                @T("order.Notdelivered") }
+                            else
+                            {
+                                if (order.ShippingStatus == "Pending" || order.ShippingStatus == "Ready for pickup")
+                                {
+                                    <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text;">
+                                        @T("order.shippingStatusProcessing")
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="btn-payment btn btn-yellow btn-none" style=" cursor: text;">@order.ShippingStatus</div>
+
+                                }
+                            }
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!--}
+    else
+    {-->
+        @*<div class="col-6 zone_btn">
+            <div><center>@T("order.PaymentStatus")</center></div>
+            <div>
+                <div class="order-status">
+                    <div class="btn-payment btn @paymentClass btn-none" style=" cursor: text;">@PaymentStatusInfo</div>
+                </div>
+            </div>
+        </div>*@
+        <!--}-->
+
+        @if (Model.AccountCustomer)
+        {
+            if (order.ShippingStatus == "Shipped" && order.OrderStatus.Contains("Completed"))
+            {
+                <div class="col-12 zone_btn">
+                    <div class="btn btn-success btn-none" style="        cursor: text;
+        font-size: 13px;
+">@T("Billed") </div>
+                    <a href="/Order/Invoice"  style="color: #3c8dbc;font-weight: 900;">
+                        @T("MyOrders.ViewMyInvoices")
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            if (order.ShippingStatus == "Shipped" && order.OrderStatus.Contains("Completed"))
+            {
+                <div class="col-12 zone_btn">
+                    <div class="btn btn-success btn-none" style=" cursor: text; ">@T("Paid") </div>
+                </div>
+            }
+         }
+
+        </div>
+        <div class="row">
+            <div class="col-12 zone_btn_actions">
+                @if (order.PaymentStatus == "Pending")
+                {
+                    <form asp-route="OrderDetails" method="post">
+                        <input type="hidden" name="orderId" value="@order.Id" />
+                        <!--<input type="submit" name="repost-payment-standard" value="@T("Order.RetryPayment")" class="btn btn-payhome" />-->
+                    </form> }
+                else
+                {
+                    <button onclick="setLocation('@Url.RouteUrl("ReOrder", new { orderId = order.Id })')" type="button" class="btn btn-shopping" style="width: 100%;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart" viewBox="0 0 16 16">
+                            <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path>
+                        </svg>
+                        @T("Order.OrderAgain")
+                    </button>}
+            </div>
+            <div class="col-12 zone_btn_actions" style="padding-bottom: 20px !important; border-radius: 0px 0px 10px 10px !important;">
+                <a class="btn btn-primary" href="@Url.RouteUrl("OrderDetails", new { orderId = order.Id })" style="padding: 2px !important;">@T("Order.ViewDetails")</a>
+            </div>
+        </div>
+            </div>
+}
+
+
+<style>
+    #customerOrderForm .btn {
+        height: auto;
+        width: auto !important;
+        padding: 5px 10px;
+        border-radius: 5px !important;
+    }
+
+    @@media (max-width: 800px) {
+        #customerOrderForm .btn {
+            width: 100% !important;
+            border-radius: 5px !important;
+        }
+
+        .order-zone-desktop {
+            display: none;
+        }
+    }
+</style>
+

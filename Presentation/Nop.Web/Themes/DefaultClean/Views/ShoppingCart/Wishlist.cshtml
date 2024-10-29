@@ -1,0 +1,750 @@
+@model WishlistModel
+@using Nop.Core
+@using Nop.Core.Domain.Tax
+@using Nop.Core.Domain.Catalog
+@using Nop.Core.Domain.Orders
+@using Nop.Core.Domain.Common
+
+@inject IWebHelper webHelper
+@inject IWorkContext workContext
+@inject CatalogSettings catalogSettings
+@inject CommonSettings commonSettings
+
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Wishlist").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-wishlist-page");
+}
+<div class="row d-flex justify-content-center colorGeneralBackgroundGray pb-3">
+    <div class="wop col-sm-11 col-md-11 col-lg-11 pt-5">
+        <div class="row">
+            <div class="wop col-lg-12 title-wishlist-mobile">
+                <h1>
+                    @if (Model.IsEditable)
+                    {
+                        @T("Wishlist")
+                    }
+                    else
+                    {
+                        @string.Format(T("Wishlist.WishlistOf").Text, Model.CustomerFullname)
+                    }
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .title-wishlist-mobile h1 {
+        padding: 25px !important;
+    }
+</style>
+
+<div style="padding: 0px 15px 0px 15px !important;">
+    <div id="div-cart-version-mobile">
+        <form asp-route="Wishlist" method="post" enctype="multipart/form-data" id="shopping-cart-form-sumary-2">
+            <div class="row">
+                <div class="col-12 cart-zone-nitems-mobile">
+                    <div class="row">
+                        <div class="col-12 cart-zone-nitems-title-mobile">
+                            @if (Model.Items.Count() == 0)
+                            {
+                                @T("ShoppingCart.Mini.NoItems")
+                            }
+                            else
+                            {
+                                <span>@Model.Items.Count() </span> @T("ShoppingCart.Mini.numberofitems")
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @foreach (var item in Model.Items)
+            {
+                var IncrementQuantity = 1;
+
+                if (item.IncrementQuantity > 1)
+                {
+                    IncrementQuantity = item.IncrementQuantity;
+                }
+                <div class="row item-cart-zone">
+                    <div class="col-12 cart-zone-nitems-mobile">
+                        <div class="row cart-zone-items-mobile" style="background-color: transparent !important; border-bottom: 1px solid #b0bec5;">
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-4">
+                                        <a href="@item.ProductSeName"><img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" data-src="@item.Picture.ImageUrl"></a>
+                                    </div>
+                                    <div class="col-8 cart-items-title-mobile">
+                                        <a href="@item.ProductSeName" style="color: #607D8B !important;">@item.ProductName</a>
+                                        <div class="cart-items-quantity-mobile">Quantity: <b><span id="quantity-version-mobile@(item.Id)">@item.Quantity</span></b></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-6 ">
+                                        <b>Price</b>
+                                    </div>
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <b><span style="color: #b0bec5 !important;">@item.UnitPrice</span></b>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <div class="row">
+                                            <div class="col-4 wop">
+                                                @if (item.IncrementQuantity > 1)
+                                                {
+                                                    <img id="O_quantitySelectorMinus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', false, @IncrementQuantity);" data-src="/Themes/DefaultClean/Content/images/minus.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/minus.svg" style="width: 25px !important;">
+                                                }
+                                                else
+                                                {
+                                                    <img id="O_quantitySelectorMinus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', false, 1);" data-src="/Themes/DefaultClean/Content/images/minus.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/minus.svg" style="width: 25px !important;">
+                                                }
+                                            </div>
+                                            @if (item.IncrementQuantity > 1)
+                                            {
+                                                <div class="col-4 wop">
+                                                    <b><input id="O_itemquantity_mobile@(item.Id)" pattern="[0-9]+" onchange="O_UpdateProducts('@(item.Id)', false, 0);" type="text" min="0" class="cart-items-qty-input-mobile input-wishlist-version-mobile" value="@(item.Quantity)" style="background-color: #eee !important; margin-left: 25px; position: relative;" disabled /></b>
+                                                </div>
+                                            }
+                                            else
+                                            {
+
+                                                <div class="col-4 wop">
+                                                    <b><input id="O_itemquantity_mobile@(item.Id)" pattern="[0-9]+" onchange="O_UpdateProducts('@(item.Id)', true, 0);" type="text" min="0" class="cart-items-qty-input-mobile input-wishlist-version-mobile" value="@(item.Quantity)" style="background-color: #eee !important; margin-left: 25px; position: relative;" disabled /></b>
+                                                </div>
+                                            }
+                                            <div class="col-4 wop">
+                                                @if (item.IncrementQuantity > 1)
+                                                {
+                                                    <img id="O_quantitySelectorPlus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', true, @IncrementQuantity);" data-src="/Themes/DefaultClean/Content/images/more.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/more.svg" style="width: 25px !important;">
+                                                }
+                                                else
+                                                {
+                                                    <img id="O_quantitySelectorPlus_@(item.Id)" onclick="O_UpdateProducts('@(item.Id)', true, 1);" data-src="/Themes/DefaultClean/Content/images/more.svg" class="cart-items-qty-btnminuplus-mobile ls-is-cached lazyloaded" src="/Themes/DefaultClean/Content/images/more.svg" style="width: 25px !important;">
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <input type="checkbox" id="addtocart@(item.Id)" name="addtocart" value="@(item.Id)" style="display: none;">
+                                        <input type="checkbox" id="removefromcart@(item.Id)" name="removefromcart" value="@(item.Id)" style="display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-6 ">
+                                        <b>Total</b>
+                                    </div>
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <b><span id="O_SubTotal_mobile@(item.Id)">@item.SubTotal</span></b>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 wop">
+                                <div class="row">
+                                    <div class="col-6 cart-items-total-mobile">
+                                        <center>
+                                            <img class="btn-category-version-mobile btn-addtocart-card-mobile ls-is-cached lazyloaded" style="background-color:#FFF !important; border-radius:5px;cursor:pointer;width: 30px;margin-top: 10px; float: left !important;" onclick="addToCart(@item.Id); return false;" data-src="/images/shopping_cart.svg" src="/images/shopping_cart.svg">
+                                            <i class="nn- nn-trash" aria-hidden="true" style="font-size:18px;cursor:pointer;color: #000;background-color: #FFF !important;border-radius: 5px;cursor: pointer;margin-top: 10px;border: 1px solid #b0bec5 !important;padding: 12px;float: left;margin-left: 5px;" onclick="deleteFromWishlit(@item.Id); return false;"></i>
+                                        </center>
+                                    </div>
+                                    <div class="col-6 cart-items-total-mobile">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            <input type="submit" id="addtocartbuttonmobile" name="addtocartbutton" value="Add to Cart" class="button-2 wishlist-add-to-cart-button" style="display: none;">
+            <input type="submit" id="updatecartmobile" name="updatecart" value="Update wishlist" class="button-2 update-wishlist-button" style="display: none;">
+        </form>
+    </div>
+</div>
+
+
+<div class="page wishlist-page wishlist-page-section-desktop">
+    <div class="row d-flex justify-content-center pb-3">
+        <div class="col-sm-11 col-md-11 col-lg-11 pt-5">
+            <div class="">
+                @if (Model.Items.Count > 0)
+                {
+                    <div class="wishlist-content">
+                        @if (Model.Warnings.Count > 0)
+                        {
+                            <div class="message-error">
+                                <ul>
+                                    @foreach (var warning in Model.Warnings)
+                                    {
+                                        <li>@warning</li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+
+                        <br /><br />
+                        <form asp-route="Wishlist" method="post" enctype="multipart/form-data" id="shopping-cart-form-sumary">
+                            <div>
+                                <table class="table text-payment-info">
+                                    <colgroup>
+                                        @if (Model.IsEditable)
+                                        {
+                                            <col width="1" />
+                                        }
+                                        @if (Model.DisplayAddToCart)
+                                        {
+                                            <col width="1" />
+                                        }
+                                        @if (Model.ShowSku)
+                                        {
+                                            <col width="1" />
+                                        }
+                                        @if (Model.ShowProductImages)
+                                        {
+                                            <col width="1" />
+                                        }
+                                        <col />
+                                        <col width="1" />
+                                        <col width="1" />
+                                        <col width="1" />
+                                    </colgroup>
+                                    <thead>
+                                        <tr>
+                                            @if (Model.IsEditable)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @T("ShoppingCart.Remove")
+                                                </th>
+                                            }
+                                            @if (Model.DisplayAddToCart)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @T("ShoppingCart.AddToCart")
+                                                </th>
+                                            }
+                                            @if (Model.ShowSku)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+                                                    @T("ShoppingCart.SKU")
+                                                </th>
+                                            }
+                                            @if (Model.ShowProductImages)
+                                            {
+                                                <th class="remove-from-cart table-order-sumary-tr">
+
+                                                </th>
+                                            }
+                                            <th class="remove-from-cart table-order-sumary-tr">
+                                                @T("ShoppingCart.Product(s)")
+                                            </th>
+                                            <th class="remove-from-cart table-order-sumary-tr">
+                                                @T("ShoppingCart.UnitPrice")
+                                            </th>
+                                            <th class="remove-from-cart table-order-sumary-tr" style="
+    text-align: center;
+">
+                                                @T("ShoppingCart.Quantity")
+                                            </th>
+                                            <th class="remove-from-cart table-order-sumary-tr">
+                                                @T("ShoppingCart.ItemTotal")
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Items)
+                                        {
+                                            var IncrementQuantity = 1;
+
+                                            if (item.IncrementQuantity > 1)
+                                            {
+                                                IncrementQuantity = item.IncrementQuantity;
+                                            }
+                                            <tr id="O_ItemProd_@(item.Id)">
+                                                @if (Model.IsEditable)
+                                                {
+                                                    <td class="remove-from-cart">
+                                                        <i class="nn- nn-trash cursorPointer" style="font-size: 1.5rem; cursor: pointer" aria-hidden="true" onclick="deleteFromWishlit(@item.Id); return false; $('#buttonUpdateCart').click();"></i>
+
+                                                    </td>
+                                                }
+                                                @if (Model.DisplayAddToCart)
+                                                {
+                                                    <td class="add-to-cart">
+                                                        @{
+
+                                                            var shoppingCartTypeId = (int)ShoppingCartType.ShoppingCart;
+                                                            var quantity = item.Quantity;
+                                                            var addtocartlink = Url.RouteUrl("AddProductToCart-Catalog", new { productId = item.ProductId, shoppingCartTypeId = shoppingCartTypeId, quantity = quantity, forceredirection = false });
+
+
+                                                        }
+                                                        <a onclick="AddToCartWithlist(@(item.Id))">
+                                                            <img src="~/images/shopping_cart.svg" width="30" height="30" style="border-radius:5px;cursor:pointer;" />
+                                                        </a>
+                                                        @*<img class="btn-home-first-mobile btn-addtocart-card-desktop ls-is-cached lazyloaded" width="20" height="20" style="border-radius:5px;cursor:pointer" onclick="return AjaxCart.addproducttocart_catalog(&quot;/addproducttocart/catalog/@(item.Id)),!1" data-src="/images/shopping_cart.svg" src="/images/shopping_cart.svg">*@
+                                                        @*<input type="checkbox" name="addtocart" value="@(item.Id)" />*@
+                                                    </td>
+                                                }
+                                                @if (Model.ShowSku)
+                                                {
+                                                    <td class="sku">
+                                                        <label class="td-title">@T("ShoppingCart.SKU"):</label>
+                                                        <span class="sku-number">@item.Sku</span>
+                                                    </td>
+                                                }
+                                                @if (Model.ShowProductImages)
+                                                {
+                                                    <td class="product-picture">
+                                                        <a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })"><img alt="@item.Picture.AlternateText" src="@item.Picture.ImageUrl" title="@item.Picture.Title" /></a>
+                                                    </td>
+                                                }
+                                                <td class="product">
+                                                    <a href="@Url.RouteUrl("Product", new {SeName = item.ProductSeName})" class="product-name product-order-summary">@item.ProductName</a>
+                                                    <br />
+                                                    <span class="category-label">@item.CategoryName</span>
+                                                    @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                                    {
+                                                        <div class="attributes">
+                                                            @Html.Raw(item.AttributeInfo)
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.RecurringInfo))
+                                                    {
+                                                        <div class="recurring-info">
+                                                            @Html.Raw(item.RecurringInfo)
+                                                        </div>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(item.RentalInfo))
+                                                    {
+                                                        <div class="rental-info">
+                                                            @Html.Raw(item.RentalInfo)
+                                                        </div>
+                                                    }
+                                                    @if (Model.IsEditable && item.AllowItemEditing)
+                                                    {
+                                                        var editCartItemUrl = Url.RouteUrl("Product", new { SeName = item.ProductSeName }, webHelper.CurrentRequestProtocol);
+                                                        editCartItemUrl = webHelper.ModifyQueryString(editCartItemUrl, "updatecartitemid", item.Id.ToString());
+                                                        <div class="edit-item">
+                                                            <a href="@editCartItemUrl">@T("Common.Edit")</a>
+                                                        </div>
+                                                    }
+                                                    @if (item.Warnings.Count > 0)
+                                                    {
+                                                        <div class="message-error">
+                                                            <ul>
+                                                                @foreach (var warning in item.Warnings)
+                                                                {
+                                                                    <li>@Html.Raw(warning)</li>
+                                                                }
+                                                            </ul>
+                                                        </div>
+                                                    }
+                                                </td>
+                                                <td class="unit-price">
+
+                                                    <span class="product-unit-price product-order-summary" id="UnitPrice_@(item.Id)">@item.UnitPrice</span>
+                                                </td>
+                                                <td class="quantity">
+
+                                                    @if (Model.IsEditable)
+                                                    {
+                                                        if (item.AllowedQuantities.Count > 0)
+                                                        {
+                                                            <select name="O_itemquantity@(item.Id)" id="O_itemquantity@(item.Id)" class="qty-dropdown">
+                                                                @foreach (var qty in item.AllowedQuantities)
+                                                                {
+                                                                    <option selected="@qty.Selected" value="@qty.Value">@qty.Value</option>
+                                                                }
+                                                            </select>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="row mx-auto" style="width:250px">
+                                                                <div class="col-md-12">
+                                                                    <div class="row justify-content-end">
+                                                                        <div class="col-3 p-0">
+                                                                            @if (item.IncrementQuantity > 1)
+                                                                            {
+                                                                                <button id="O_quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus" type="button" onclick="O_UpdateProducts('@(item.Id)', false, @IncrementQuantity)" style="float:right">
+                                                                                    <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                                                </button>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <button id="O_quantitySelectorMinus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMinus" type="button" onclick="O_UpdateProducts('@(item.Id)', false, 1)" style="float:right">
+                                                                                    <img src="~/Themes/DefaultClean/Content/images/minus.svg" />
+                                                                                </button>
+                                                                            }
+
+                                                                        </div>
+                                                                        <div class="col-6 p-0" id="input_value_@(item.Id)">
+                                                                            @*<input name="O_itemquantity@(item.Id)" id="O_itemquantity@(item.Id)" type="text" value="@(item.Quantity)" class="qty-input product-order-summary" />*@
+                                                                            <input oninput="javascript: if (this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);" type="number" maxlength="3" onchange="updateProductsCart('@(item.Id)')" for="itemquantity@(item.Id)" id="itemquantity@(item.Id)" name="itemquantity@(item.Id)" class="form-control qty-input product-order-summary" value="@(item.Quantity)" style="float:left;width: 100px !important;margin-left: 17px;margin-top: -10px;" />
+                                                                        </div>
+                                                                        <div class="col-3 p-0">
+                                                                            @if (item.IncrementQuantity > 1)
+                                                                            {
+                                                                                <button id="O_quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore" type="button" onclick="O_UpdateProducts('@(item.Id)', true, @IncrementQuantity)" style="float:left">
+                                                                                    <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                                                </button>
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                <button id="O_quantitySelectorPlus_@(item.Id)" class="ButtonsaddToCart ButtonsaddToCartMore" type="button" onclick="O_UpdateProducts('@(item.Id)', true, 1)" style="float:left">
+                                                                                    <img src="~/Themes/DefaultClean/Content/images/more.svg" />
+                                                                                </button>
+                                                                            }
+
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+
+
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="product-quantity">@item.Quantity</span>
+                                                    }
+
+                                                </td>
+
+                                                <td class="subtotal">
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <span id="O_SubTotal@(item.Id)" class="product-unit-price product-order-summary colorGeneralTextRed">@item.SubTotal</span>
+                                                        </div>
+                                                    </div>
+                                                    @if (!string.IsNullOrEmpty(item.Discount))
+                                                    {
+                                                        <div class="row my-auto">
+                                                            <div class="col-12 d-flex" style="margin-left: 1.4rem;">
+                                                                <div class="discount text-payment-info" id="O_ItemDiscount@(item.Id)" style="font-weight:normal !important;  text-align: right;">
+                                                                    @T("ShoppingCart.ItemYouSave", "<br>" + item.Discount)
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        if (item.MaximumDiscountedQty.HasValue)
+                                                        {
+                                                            <div class="row w-100">
+                                                                <div class="col-12">
+                                                                    <div class="discount-additional-info" style="font-weight:normal !important;  text-align: right;">
+                                                                        @T("ShoppingCart.MaximumDiscountedQty", "<br>" + item.MaximumDiscountedQty.Value)
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        }
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if (Model.Items.Count > 0 && Model.DisplayTaxShippingInfo)
+                            {
+                                var inclTax = workContext.TaxDisplayType == TaxDisplayType.IncludingTax;
+                                //tax info is already included in the price (incl/excl tax). that's why we display only shipping info here
+                                //of course, you can modify appropriate locales to include VAT info there
+                                <div class="tax-shipping-info">
+                                    @T(inclTax ? "Wishlist.TaxShipping.InclTax" : "Wishlist.TaxShipping.ExclTax", Url.RouteUrl("Topic", new { SeName = Html.GetTopicSeName("shippinginfo") }))
+                                </div>
+                            }
+                            @*<div class="buttons">
+                                    @if (Model.IsEditable)
+                                    {
+                                        <input type="submit" name="updatecart" value="@T("Wishlist.UpdateCart")" class="button-2 update-wishlist-button" />
+                                    }
+                                    @if (Model.DisplayAddToCart)
+                                    {
+                                        <input type="submit" name="addtocartbutton" value="@T("ShoppingCart.AddToCart")" class="button-2 wishlist-add-to-cart-button" />
+                                    }
+                                    @if (Model.IsEditable && Model.EmailWishlistEnabled)
+                                    {
+                                        <input type="button" value="@T("Wishlist.EmailAFriend")" class="button-2 email-a-friend-wishlist-button" onclick="setLocation('@Url.RouteUrl("EmailWishlist")')" />
+                                    }
+                                </div>*@
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="no-data">
+                        @T("Wishlist.CartIsEmpty")
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    function O_UpdateProducts(id, increment, quantity) {
+
+        var value = $("#itemquantity" + id).val();
+        var value = $("#O_itemquantity_mobile" + id).val();
+
+
+        if (value > 0) {
+            var newValue = parseInt(value);
+            if (increment) {
+                newValue = newValue + quantity;
+            }
+            else {
+                newValue = newValue - quantity;
+            }
+
+
+            $("#O_itemquantity_mobile" + id).val(newValue);
+            $("#itemquantity" + id).remove();
+            $("#input_value_" + id).html('<input oninput="this.value.length>this.maxLength&amp;&amp;(this.value=this.value.slice(0,this.maxLength))" type="number" maxlength="3" onchange="updateProductsCart(' + id + ')" for="itemquantity' + id + '" id="itemquantity' + id + '" name="itemquantity' + id + '" class="form-control qty-input product-order-summary" value="' + newValue+'" style="float:left;width:100px !important;margin-left:17px;margin-top:-10px">');
+
+
+            if (newValue == 0) {
+                $("#O_quantitySelectorMinus_" + id).css("opacity", "0.5");
+            }
+            var data = {
+                'updatecart': "Update wishlist"
+            };
+
+            data = $("#shopping-cart-form-sumary").serialize() + '&' + $.param(data);
+            $(".ButtonsaddToCart").addClass("disabledContent");
+            $.ajax({
+                type: 'POST',
+                async: true,
+                url: "@Url.Action("WishlistItem", "ShoppingCart")",
+                data: data,
+                dataType: 'json',
+                success: function (data) {
+
+                    
+
+                    if (data.TotalProducts == null || data.TotalProducts == 0) {
+                        location.reload();
+                    }
+
+                    if (newValue <= 0) {
+                        $("#O_ItemProd_" + id).remove();
+                    }
+
+                    var itemTotal = data.Items.find(x => x.Id == id);
+
+
+
+                    if (itemTotal != undefined) {
+                        if (itemTotal.SubTotal != null) {
+                            $("#O_SubTotal" + id).html("");
+                            $("#O_SubTotal" + id).html(itemTotal.SubTotal);
+                            $("#O_SubTotal_mobile" + id).html("");
+                            $("#O_SubTotal_mobile" + id).html(itemTotal.SubTotal);
+                        }
+
+                        if (data.SubTotal != null) {
+                            $("#O_SubTotal").html("");
+                            $("#O_SubTotal").html(data.SubTotal);
+                            $("#O_SubTotal_mobile").html("");
+                            $("#O_SubTotal_mobile").html(data.SubTotal);
+                        }
+                    }
+
+                    if(data.SubTotal != null) {
+                            $("#O_SubTotal").html("");
+                            $("#O_SubTotal").html(data.SubTotal);
+                            $("#O_SubTotal_mobile").html("");
+                            $("#O_SubTotal_mobile").html(data.SubTotal);
+                    }
+
+                    if (itemTotal.Discount != null) {
+                        $("#O_ItemDiscount" + id).html("");
+                        $("#O_ItemDiscount" + id).html("You save:<br>" + itemTotal.Discount);
+                    }
+
+
+                     var itemUnitPrice = data.Items.find(x => x.Id == id);
+                    if (itemUnitPrice != undefined) {
+                        if (itemUnitPrice.UnitPrice != null) {
+                            $("#UnitPrice_" + id).html("");
+                            $("#UnitPrice_" + id).html(itemUnitPrice.UnitPrice)
+                        }
+
+
+                        if (data.UnitPrice != null) {
+                            $("#UnitPrice_").html("");
+                            $("#UnitPrice_").html(data.UnitPrice)
+                        }
+                    }
+                    $(".ButtonsaddToCart").removeClass("disabledContent");
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    // alert('Failed to update cart');
+                }
+            });
+        }
+    }
+
+   function updateProductsCart(id) {
+        var value = $("#O_itemquantity" + id).val();
+
+        var newValue = parseInt(value);
+        if (newValue == 0) {
+            $("#O_quantitySelectorMinus_" + id).css("opacity", "0.5");
+        }
+        //$(".ButtonsaddToCart").addClass("disabledContent");
+        //$("#O_itemquantity" + id).addClass("disabledContent");
+
+
+       $("#itemquantity" + id).remove();
+       $("#input_value_" + id).html('<input oninput="this.value.length>this.maxLength&amp;&amp;(this.value=this.value.slice(0,this.maxLength))" type="number" maxlength="3" onchange="updateProductsCart(' + id + ')" for="itemquantity' + id + '" id="itemquantity' + id + '" name="itemquantity' + id + '" class="form-control qty-input product-order-summary" value="' + newValue + '" style="float:left;width:100px !important;margin-left:17px;margin-top:-10px">');
+
+
+            var data = {
+                'updatecart': "Update wishlist"
+            };
+
+            data = $("#shopping-cart-form-sumary").serialize() + '&' + $.param(data);
+             $.ajax({
+                type: 'POST',
+                async: true,
+                url: "@Url.Action("WishlistItem", "ShoppingCart")",
+                data: data ,
+                 dataType: 'json',
+                 success: function (data) {
+
+
+                     if (data.TotalProducts == null || data.TotalProducts == 0) {
+                         location.reload();
+                     }
+
+                     if (newValue <= 0) {
+                         $("#O_ItemProd_" + id).remove();
+                     }
+
+                     var itemTotal = data.Items.find(x => x.Id == id);
+
+                     if (itemTotal != undefined) {
+
+                         if (itemTotal.SubTotal != null) {
+                             $("#O_SubTotal" + id).html("");
+                             $("#O_SubTotal" + id).html(itemTotal.SubTotal);
+                             $("#O_SubTotal_mobile" + id).html("");
+                             $("#O_SubTotal_mobile" + id).html(itemTotal.SubTotal);
+                         }
+
+                         if (data.SubTotal != null) {
+                             $("#O_SubTotal").html("");
+                             $("#O_SubTotal").html(data.SubTotal);
+                             $("#O_SubTotal_mobile").html("");
+                             $("#O_SubTotal_mobile").html(data.SubTotal);
+                         }
+                     }
+                     if (data.SubTotal != null) {
+                             $("#O_SubTotal").html("");
+                             $("#O_SubTotal").html(data.SubTotal);
+                             $("#O_SubTotal_mobile").html("");
+                             $("#O_SubTotal_mobile").html(data.SubTotal);
+                    }
+
+                     if (itemTotal.Discount != null) {
+                        $("#O_ItemDiscount" + id).html("");
+                        $("#O_ItemDiscount" + id).html("You save:<br>" + itemTotal.Discount);
+                     }
+
+                     var itemUnitPrice = data.Items.find(x => x.Id == id);
+                     if (itemUnitPrice != undefined) {
+                         if (itemUnitPrice.UnitPrice != null) {
+                             $("#UnitPrice_" + id).html("");
+                             $("#UnitPrice_" + id).html(itemUnitPrice.UnitPrice)
+                         }
+
+
+                         if (data.UnitPrice != null) {
+                             $("#UnitPrice_").html("");
+                             $("#UnitPrice_").html(data.UnitPrice)
+                         }
+                     }
+                  },
+                 error: function (jqXHR, textStatus, errorThrown) {
+                  }
+            });
+    }
+
+    function addToCart(id) {
+        $('#addtocart' + id).prop('checked', true);
+        $("#addtocartbuttonmobile").click();
+    }
+
+    function deleteFromWishlit(id) {
+        $('#removefromcart' + id).prop('checked', true);
+        $("#updatecartmobile").click();
+    }
+
+
+    function AddToCartWithlist(id) {
+
+        if (typeof id === 'undefined' || isNaN(id)) {
+            console.error('Invalid ID:', id);
+            return; // Exit the function if 'id' is not valid
+        }
+
+        var data = {
+            'addtocartbutton': "Add to Cart",
+            'itemquantity': id
+        };
+
+        // Convert data object to query string format if necessary
+        var queryString = $.param(data);
+
+        $.ajax({
+            type: 'POST',
+            async: true,
+            url: "@Url.Action("addtocartbutton", "Wishlist")",
+            data: queryString,
+            dataType: 'json',
+            success: function (response) {
+                if (response.totalProducts != null) {
+                    $("#TotalShoppingCartItems").html("");
+                    $("#TotalShoppingCartItems").html("(" + response.totalProducts + ")");
+                }
+
+                if (response.updatetopcartsectionhtml) {
+                    $(AjaxCart.topcartselector).html(response.updatetopcartsectionhtml);
+                }
+                if (response.updatetopwishlistsectionhtml) {
+                    $(AjaxCart.topwishlistselector).html(response.updatetopwishlistsectionhtml);
+                }
+                if (response.updateflyoutcartsectionhtml) {
+                    $(AjaxCart.flyoutcartselector).html("");
+                    $(AjaxCart.flyoutcartselector).replaceWith(response.updateflyoutcartsectionhtml);
+                }
+                displayBarNotification(response.message, 'success',  900);
+                
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+        
+
+}
+</script>
+
+<style>
+    th.remove-from-cart.table-order-sumary-tr {
+        width: 0%;
+    }
+</style>

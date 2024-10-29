@@ -1,0 +1,247 @@
+﻿@model ContactUsModel
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.ContactUs").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-contact-page");
+}
+<div class="page contact-page">
+    <div class="page-title">
+        <h1>@T("PageTitle.ContactUs")</h1>
+    </div>
+    <div class="page-body">
+        @await Component.InvokeAsync("TopicBlock", new { systemName = "ContactUs" })
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ContactUsTop })
+        @if (Model.SuccessfullySent)
+        {
+            <div class="row">
+                <div class="col-md-2"></div>
+                <div class="col-md-10">
+                    <div class="contact-us-messages">
+                        <strong>@Model.Result</strong>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-md-12 justify-text-center contact-us-title">
+                    @T("contactus")
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 justify-text-center contact-us-title">
+                    @T("store.contactus.phone")
+                </div>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-4 justify-text-center contact-us-subtitle">
+                    @T("atlanta.office")
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-subtitle">
+                    @T("cincinnati.office")
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-subtitle">
+                    @T("nashville.office")
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 justify-text-center contact-us-phone">
+                    <i class="nn- nn-phone-light footer-icon-size"></i><a href="tel:@T("atlanta.office.phone")"> @T("atlanta.office.phone")</a>
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-phone">
+                    <i class="nn- nn-phone-light footer-icon-size"></i><a href="tel:@T("cincinnati.office.phone")"> @T("cincinnati.office.phone")</a>
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-phone">
+                    <i class="nn- nn-phone-light footer-icon-size"></i><a href="tel:@T("nashville.office.phone")"> @T("nashville.office.phone")</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 justify-text-center contact-us-mail">
+                    <i class="nn- nn-message footer-icon-size"></i><a href="mailto:@T("atlanta.office.email")"> @T("atlanta.office.email")</a>
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-mail">
+                    <i class="nn- nn-message footer-icon-size"></i><a href="mailto:@T("cincinnati.office.email")"> @T("cincinnati.office.email")</a>
+                </div>
+                <div class="col-md-4 justify-text-center contact-us-mail">
+                    <i class="nn- nn-message footer-icon-size"></i><a href="mailto:@T("nashville.office.email")"> @T("nashville.office.email")</a>
+                </div>
+            </div>
+            <br />
+            <br />
+            <form asp-route="ContactUs" method="post">
+                <div asp-validation-summary="ModelOnly" class="message-error"></div>
+                <div class="fieldset form-fields-center">
+                    <div class="form-fields">
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="FullName" asp-postfix=":"></label>
+                                    <nop-required />
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="LastName" asp-postfix=":"></label>
+                                    <nop-required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="inputs form-fields-inputs">
+                                    <input asp-for="FullName" class="fullname" maxlength="20" />
+                                    <span asp-validation-for="FullName"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="inputs form-fields-inputs">
+                                    <input asp-for="LastName" class="fullname" maxlength="20" />
+                                    <span asp-validation-for="LastName"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="Email" asp-postfix=":"></label>
+                                    <nop-required />
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="PhoneNumber" asp-postfix=":"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="inputs form-fields-inputs">
+                                    <input asp-for="Email" class="email" maxlength="40" />
+                                    <span asp-validation-for="Email"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="inputs form-fields-inputs">
+                                    <input asp-for="PhoneNumber" class="phone" maxlength="10" onkeypress="return isNumber(event)" onchange="checkDigit(this) " />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="Company" asp-postfix=":"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="inputs form-fields-inputs">
+                                    <input asp-for="Company" class="fullname" maxlength="50" />
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.SubjectEnabled)
+                        {
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-fields-label">
+                                        <label asp-for="Subject" asp-postfix=":"></label>
+                                        <nop-required />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="inputs form-fields-inputs">
+                                        <input asp-for="Subject" class="subject" style="width:83%;" maxlength="50"/>
+                                        <span asp-validation-for="Subject"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-fields-label">
+                                    <label asp-for="Enquiry" asp-postfix=":"></label>
+                                    <nop-required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="inputs form-fields-inputs">
+                                    <textarea asp-for="Enquiry" class="enquiry" style="width:83%;" maxlength="999"></textarea>
+                                    <span asp-validation-for="Enquiry"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @*<div class="inputs">
+                                <label asp-for="Enquiry" asp-postfix=":"></label>
+                                <textarea asp-for="Enquiry" placeholder="@T("ContactUs.Enquiry.Hint")" class="enquiry"></textarea>
+                                <nop-required />
+                                <span asp-validation-for="Enquiry"></span>
+                            </div>*@
+
+                        @if (Model.DisplayCaptcha)
+                        {
+                            <div class="captcha-box">
+                                <nop-captcha />
+                            </div>
+                        }
+
+
+                        <div class="row">
+                            <div class="col-md-2"></div>
+                            <div class="col-md-10">
+                                <div class="contact-us-messages">
+                                    <strong>@T("ContactUs.message.advertice") </strong>&nbsp;<div class="red"><strong>@T("ContactUs.message.advertice.thankyou")</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <input type="submit" name="send-email" id="send-email" class="button-1 contact-us-button" value="@T("ContactUs.Button")" />
+                </div>
+            </form>
+        }
+        @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ContactUsBottom })
+    </div>
+    <script>
+    function checkDigit(event){ 
+        var  str = document.getElementById(event.id).value;
+        for (var i = 0; i < str.length; i++) {
+            if (isNaN(str.charAt(i))) { //is not number
+                    document.getElementById(event.id).value = "";
+            }
+        }    
+    }
+    function isNumber(evt) {
+        evt = (evt) ? evt : window.event;
+        var charCode = (evt.which) ? evt.which : evt.keyCode;
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            return false;
+        }
+        return true;
+    }
+    </script>
+</div>
+

@@ -1,0 +1,586 @@
+﻿@model CheckoutShippingAddressModel
+@using System.Text
+<div class="checkout-data">
+    @Html.Hidden("ShipToSameAddressHidden")
+
+    @functions{
+        public string Shorten(string estate)
+        {
+
+            string text = estate.Length > 147 ? estate.Substring(0, 147) + "..." : estate;
+            return text;
+        }
+
+        string method = "";
+    }
+
+    <input id="len-address-shipping" type="hidden" value="@Model.ExistingAddresses.Count()" />
+    @if (Model.ShippingNewAddress.IsGuest)
+    {
+        <input type="hidden" id="GuestCheckout" name="GuestCheckout" value="1" />
+
+    }
+
+    @if (!Model.PickupInStoreOnly)
+    {
+        <div class="shipping-addresses" id="shipping-addresses-form">
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OpCheckoutShippingAddressTop })
+            @if (Model.ExistingAddresses.Count > 0)
+            {
+                <div class="row justify-content-center mt-3 mb-4" style="margin-bottom: 2.5rem !important;">
+                    <div class="col-lg-8">
+                        <div class="section select-shipping-address">
+                            <label for="shipping-address-select">@T("Checkout.SelectShippingAddressOrEnterNewOne")</label>
+                            @if (Model.InvalidExistingAddresses.Count > 0)
+                            {
+                                <label class="min-amount-warning">
+                                    @string.Format(T("Checkout.Addresses.Invalid").Text, Model.InvalidExistingAddresses.Count)
+                                </label>
+                            }
+                        <div>
+
+                            @if (Model.ShippingNewAddress.IsGuest)
+                            {
+                                method = "Shipping.newAddress(!this.value)";
+                            }
+                            else
+                            {
+                                method = "Shipping.selectAddress(this.value)";
+                            }
+
+                            <select name="shipping_address_id" id="shipping-address-select" style="display:none; width:100% !important" class="address-select"
+                                    title="" onchange="@method">
+                                @foreach (var address in Model.ExistingAddresses)
+                                {
+                                    if (address.IsShipping)
+                                    {
+                                        var addressLine = "";
+                                        //addressLine += address.FirstName;
+                                        //addressLine += " " + address.LastName;
+                                        if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                        {
+                                            addressLine += address.Address1;
+                                        }
+
+                                        if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                        {
+                                            addressLine += ", " + address.Address2;
+                                        }
+
+                                        if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                        {
+                                            addressLine += ", " + address.City;
+                                        }
+                                        if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                        {
+                                            addressLine += ", " + address.County;
+                                        }
+                                        if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                        {
+                                            addressLine += ", " + address.StateProvinceName;
+                                        }
+                                        if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                        {
+                                            addressLine += " " + address.ZipPostalCode;
+                                        }
+                                        
+                                        if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                        {
+                                            addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+                                        }
+
+                                        //how should we render "FormattedCustomAddressAttributes" here?
+                                        <option title="@addressLine" value="@(address.Id)">@Shorten(addressLine)</option>
+                                    }
+
+                                }
+
+                                @foreach (var address in Model.ExistingAddresses)
+                                {
+                                    if (!address.IsShipping)
+                                    {
+                                        var addressLine = "";
+                                        //addressLine += address.FirstName;
+                                        //addressLine += " " + address.LastName;
+                                        if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                        {
+                                            addressLine += address.Address1;
+                                        }
+
+                                        if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                        {
+                                            addressLine += ", " + address.Address2;
+                                        }
+
+                                        if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                        {
+                                            addressLine += ", " + address.City;
+                                        }
+                                        if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                        {
+                                            addressLine += ", " + address.County;
+                                        }
+                                        if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                        {
+                                            addressLine += ", " + address.StateProvinceName;
+                                        }
+                                        if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                        {
+                                            addressLine += " " + address.ZipPostalCode;
+                                        }
+
+                                        if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                        {
+                                            addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+
+                                        }
+
+                                        //how should we render "FormattedCustomAddressAttributes" here?
+                                        <option title="@addressLine" value="@(address.Id)">@Shorten(addressLine)</option>
+                                    }
+
+                                }
+                                @*<option value="" selected="@Model.NewAddressPreselected">@T("Checkout.NewAddress")</option>*@
+
+                                @if (Model.ExistingAddresses.Count() < 10)
+                                {
+                                    <option value="" selected="@Model.NewAddressPreselected">@T("Checkout.NewAddress")</option>
+                                }
+                            </select>
+                            @{
+                                bool first = true;
+                            }
+                            @foreach (var address in Model.ExistingAddresses)
+                            {
+                                if (address.IsShipping)
+                                {
+                                    var addressLine = "";
+                                    //addressLine += address.FirstName;
+                                    //addressLine += " " + address.LastName;
+                                    if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                    {
+                                        addressLine += address.Address1;
+                                    }
+
+                                    if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                    {
+                                        addressLine += ", " + address.Address2;
+                                    }
+
+                                    if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                    {
+                                        addressLine += ", " + address.City;
+                                    }
+                                    if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                    {
+                                        addressLine += ", " + address.County;
+                                    }
+                                    if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                    {
+                                        addressLine += ", " + address.StateProvinceName;
+                                    }
+                                    if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                    {
+                                        addressLine += " " + address.ZipPostalCode;
+                                    }
+                                    if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                    {
+                                        addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+
+                                    }
+
+
+                                    string str = addressLine;
+                                    string[] charsToRemove = new string[] { "@", ".", ";", "'", "\n" };
+                                    foreach (var c in charsToRemove)
+                                    {
+                                        str = str.Replace(c, string.Empty);
+                                    }
+
+                                    if (Model.ShippingNewAddress.IsGuest)
+                                    {
+                                        method = "Shipping.resetShippingForm();Shipping.newAddress(!" + address.Id + ")";
+                                    }
+                                    else
+                                    {
+                                        method = "Shipping.selectAddress(" + address.Id + ")";
+                                    }
+
+                                    if (first)
+                                    {
+                        <a onclick="showOptions('select-02');" class="option-selected" id="option-seleted-02">@Html.Raw(str)</a>
+                                        <img class="img-shipping-address" src="~/images/chevrone-down-2.png" style="float: right; width: 15px; height: 15px; position: absolute; top: 52px; left: 96%;" onclick="showOptions('select-02');" />
+                                        first = false;
+                                    }
+         
+                                    break;
+                                }
+
+                            }
+
+                            @foreach (var address in Model.ExistingAddresses)
+                            {
+                                if (!address.IsShipping)
+                                {
+                                    var addressLine = "";
+                                    //addressLine += address.FirstName;
+                                    //addressLine += " " + address.LastName;
+                                    if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                    {
+                                        addressLine += address.Address1;
+                                    }
+
+                                    if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                    {
+                                        addressLine += ", " + address.Address2;
+                                    }
+
+                                    if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                    {
+                                        addressLine += ", " + address.City;
+                                    }
+                                    if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                    {
+                                        addressLine += ", " + address.County;
+                                    }
+                                    if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                    {
+                                        addressLine += ", " + address.StateProvinceName;
+                                    }
+                                    if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                    {
+                                        addressLine += " " + address.ZipPostalCode;
+                                    }
+                                    if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                    {
+                                        addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+
+                                    }
+
+                                    string str = addressLine;
+                                    string[] charsToRemove = new string[] { "@", ".", ";", "'", "\n" };
+                                    foreach (var c in charsToRemove)
+                                    {
+                                        str = str.Replace(c, string.Empty);
+                                    }
+
+                                    if (Model.ShippingNewAddress.IsGuest)
+                                    {
+                                        method = "Shipping.resetShippingForm();Shipping.newAddress(!" + address.Id + ")";
+                                    }
+                                    else
+                                    {
+                                        method = "Shipping.selectAddress(" + address.Id + ")";
+                                    }
+
+                                    if (first)
+                                    {
+                        <a onclick="showOptions('select-02');" class="option-selected" id="option-seleted-02">@Html.Raw(str)</a>
+                                        <img class="img-shipping-address" src="~/images/chevrone-down-2.png" style="float: right; width: 15px; height: 15px; position: absolute; top: 52px; left: 96%;" onclick="showOptions('select-02');" />
+                                        first = false;
+                                    }
+
+                                    break;
+                                }
+
+                            }
+
+                        <div class="div-select-options" id="select-02" style="display: none;">
+                            @foreach (var address in Model.ExistingAddresses)
+                            {
+                                if (address.IsShipping)
+                                {
+
+                                    var addressLine = "";
+
+                                    if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                    {
+                                        addressLine += "<span>" + address.Address1;
+                                    }
+                                    if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                    {
+                                        addressLine += ", " + address.Address2 + "</span>";
+                                    }
+                                    else
+                                    {
+                                        addressLine += "</span>";
+
+                                    }
+
+                                    if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                    {
+                                        addressLine += "<span>" + address.City;
+                                    }
+                                    if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                    {
+                                        addressLine += ", " + address.County;
+                                    }
+                                    if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                    {
+                                        addressLine += " " + address.StateProvinceName;
+                                    }
+                                    if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                    {
+                                        addressLine += " " + address.ZipPostalCode + "</span>";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                    {
+                                        addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+
+                                    }
+
+
+                                    string str = addressLine;
+                                    string[] charsToRemove = new string[] { "@", ".", ";", "'", "\n" };
+                                    foreach (var c in charsToRemove)
+                                    {
+                                        str = str.Replace(c, string.Empty);
+                                    }
+                                    if (Model.ShippingNewAddress.IsGuest)
+                                    {
+                                        method = "Shipping.resetShippingForm();Shipping.newAddress(!" + address.Id + ")";
+                                    }
+                                    else
+                                    {
+                                        method = "Shipping.selectAddress(" + address.Id + ")";
+                                    }
+
+                                    <div class="div-select-option"><a onclick="selectItem('@(address.Id)','select-02', 'option-seleted-02', '@str', 'shipping-address-select'); @method">@Html.Raw(str)</a></div>
+                                }
+
+                            }
+                            @foreach (var address in Model.ExistingAddresses)
+                            {
+                                if (!address.IsShipping)
+                                {
+                                    var addressLine = "";
+
+                                    if (address.StreetAddressEnabled && !string.IsNullOrEmpty(address.Address1))
+                                    {
+                                        addressLine += "<span>" + address.Address1;
+                                    }
+                                    if (address.StreetAddress2Enabled && !string.IsNullOrWhiteSpace(address.Address2))
+                                    {
+                                        addressLine += ", " + address.Address2 + "</span>";
+                                    }
+                                    else
+                                    {
+                                        addressLine += "</span>";
+                                    }
+
+                                    if (address.CityEnabled && !string.IsNullOrEmpty(address.City))
+                                    {
+                                        addressLine += "<span>" + address.City;
+                                    }
+                                    if (address.CountyEnabled && !string.IsNullOrEmpty(address.County))
+                                    {
+                                        addressLine += ", " + address.County;
+                                    }
+                                    if (address.StateProvinceEnabled && !string.IsNullOrEmpty(address.StateProvinceName))
+                                    {
+                                        addressLine += ", " + address.StateProvinceName;
+                                    }
+                                    if (address.ZipPostalCodeEnabled && !string.IsNullOrEmpty(address.ZipPostalCode))
+                                    {
+                                        addressLine += " " + address.ZipPostalCode + "</span>";
+                                    }
+
+                                    if (!string.IsNullOrEmpty(address.DeliveryRouteName))
+                                    {
+
+                                        addressLine += " <span class='approvedNN'>Approved for N&N Delivery</span>";
+
+                                    }
+
+
+                                    string str = addressLine;
+                                    string[] charsToRemove = new string[] { "@", ".", ";", "'", "\n" };
+                                    foreach (var c in charsToRemove)
+                                    {
+                                        str = str.Replace(c, string.Empty);
+                                    }
+
+
+
+                                    if (Model.ShippingNewAddress.IsGuest)
+                                    {
+                                        method = "Shipping.resetShippingForm();Shipping.newAddress(!" + address.Id + ")";
+                                    }
+                                    else
+                                    {
+                                        method = "Shipping.selectAddress(" + address.Id + ")";
+                                    }
+
+                                    <div class="div-select-option"><a onclick="selectItem('@(address.Id)','select-02', 'option-seleted-02', '@str', 'shipping-address-select'); @method">@Html.Raw(str)</a></div>
+                                }
+
+                            }
+                            @if (Model.ExistingAddresses.Count() < 10)
+                            {
+                                <br>
+                                <div class="div-select-option"><a style="font-weight: 600" onclick="selectItem('','select-02', 'option-seleted-02', '@T("Checkout.NewAddress").Text', 'shipping-address-select'); Shipping.selectAddress(0);">+ @T("Checkout.NewAddress").Text</a></div>
+
+                            }
+                        </div>
+
+                            @if (!Model.ShippingNewAddress.IsGuest)
+                            {
+                                <script>
+                                    $(function () {
+                                        if ($("#shipping-address-select").length > 0) {
+                                            Shipping.selectAddress($('#shipping-address-select').val());
+                                        }
+                                    });
+                                </script>
+                            }
+
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                
+            }
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OpCheckoutShippingAddressMiddle })
+            <div class="section new-shipping-address" id="shipping-new-address-form">
+                @*@if (!Model.ShippingNewAddress.AccountCustomer)
+                {*@
+                    <div class="enter-address">
+                        <div asp-validation-summary="ModelOnly" class="message-error"></div>
+                        @{
+                            var dataDictAddress = new ViewDataDictionary(ViewData);
+                            dataDictAddress.TemplateInfo.HtmlFieldPrefix = "ShippingNewAddress";
+                            @await Html.PartialAsync("_CreateOrUpdateAddress", Model.ShippingNewAddress, dataDictAddress)
+                        }
+                    </div>
+                @*}*@
+            </div>
+
+            <div class="section new-shipping-address">
+                <div id="form-select-shipping">
+                </div>
+            </div>
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OpCheckoutShippingAddressBottom })
+        </div>
+    }
+
+
+
+</div>
+
+<script>
+
+    function validateName() {
+            var firstName = $('#ShippingNewAddress_FirstName').val();
+
+        if (firstName != "") {
+            var myfield = $('#ShippingNewAddress.FirstName');
+                myfield.removeClass('field-validation-error');
+                $("#FirstNameValidate").html(" ");
+                $("#FirstNameValidate").html("ddd ");
+            }
+        }
+
+    function validateLastName() {
+        var lastName = $('#ShippingNewAddress_LastName').val();
+        if (lastName != "") {
+            $("#LastNameValidate").html("");
+        }
+    }
+    function validateEmail() {
+        var email = $('#ShippingNewAddress_Email').val();
+        if (email != "") {
+            $("#validateEmail").html("");
+        }
+    }
+    function validateAddress1() {
+        var Address1 = $('#ShippingNewAddress_Address1').val();
+        if (Address1 != "") {
+            $("#validateAddress1").html("");
+        }
+    }
+
+    function validateCity() {
+        var City = $('#ShippingNewAddress_City').val();
+        if (City != "") {
+            $("#validateCity").html("");
+        }
+    }
+
+
+    function ValidateZipCode() {
+        var zipCode = $('#ShippingNewAddress_ZipPostalCode').val();
+        if (zipCode != "") {
+            $("#ZipPostalCodeValidate").html("");
+        }
+    }
+
+     function validateEmail() {
+         var email = document.getElementById('ShippingNewAddress_Email').value;
+            var postData = {
+                email: email,
+            };
+            addAntiForgeryToken(postData);
+
+            $.ajax({
+                    cache: false,
+                    type: "POST",
+                    url: "@(Url.Action("ValidEmailCustomer", "Checkout"))",
+                    traditional: true,
+                    data: postData,
+                    success: function (data, textStatus, jqXHR) {
+                        if (data.Result == true)
+                        {
+                             displayPopupContentFromUrl('@Url.RouteUrl("TopicPopup", new {SystemName = "associatedcustomer" })',
+                            '@T("admin.configuration.shipping.method.associatedcustomer")');
+
+
+
+
+                            setTimeout(function () {
+
+                                var MessageAccountCustomer = document.getElementById('MessageAccountCustomer');
+
+                                if (MessageAccountCustomer != null) {
+                                    // Get the current text content
+                                    var currentText = MessageAccountCustomer.textContent;
+
+                                    // Replace the placeholder with the actual email
+                                    var updatedMessage = currentText.replace(/{emailfieldhere}/g, email);
+
+                                    // Update the element with the new text
+                                    MessageAccountCustomer.textContent = updatedMessage;
+                                }
+                                var sendButton = document.getElementById('Login');
+                                if (sendButton) {
+                                    sendButton.addEventListener("click", function () { LoginValidRedirect(data.newAccount); }, false);
+                                }
+
+                                var sendButton_1 = document.getElementById('NoContinueCheckoutButton');
+                                if (sendButton_1) {
+                                    sendButton_1.addEventListener("click", function () { ContinueCheckout(); }, false);
+                                }
+                            }, 2000);
+
+
+                        }
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(errorThrown);
+                        closeButton.click();
+                    }
+          });
+
+
+    }
+
+    function LoginValidRedirect(Login) {
+            if (Login == false) {
+                    setLocation('@(Url.RouteUrl("Login"))');
+            } else {
+                setLocation('@(Url.RouteUrl("validateregister"))');
+            }
+    }
+</script>
+

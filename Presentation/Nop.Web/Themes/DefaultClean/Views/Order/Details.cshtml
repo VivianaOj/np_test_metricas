@@ -1,0 +1,819 @@
+@model OrderDetailsModel
+@using Nop.Core.Domain.Payments
+
+@{ if (!Model.PrintMode)
+    {
+        Layout = "_ColumnsOne";
+    }
+    else
+    {
+        Layout = "_Print";
+    }
+
+    //title
+    Html.AddTitleParts(T("PageTitle.OrderDetails").Text);
+
+    //page class
+    Html.AppendPageCssClassParts("html-order-details-page");
+}
+
+@if (Model.PrintMode)
+{
+    <script asp-location="Footer">
+        $(document).ready(function () {
+            window.print();
+        });
+    </script>
+}
+@{var orderId = Model.Id.ToString();
+    //if (Model.TransId != null)
+    //{
+    //    orderId = Model.TransId;
+    //}
+}
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato&family=Raleway:wght@200;500;700&display=swap" rel="stylesheet">
+<div class="padding-breadcrumb-general-mobile row d-flex justify-content-center colorGeneralBackgroundGray pb-3 title-cart-version-mobile">
+    <div class="col-12 col-sm-11 col-md-11 col-lg-11">
+        <div class="form-inline text-breadcrumb mt-2 mb-5" itemscope itemtype="http://schema.org/BreadcrumbList">
+            <span>
+                <a href="/order/history">
+                    <span>@T("account.customerorders")</span>
+                </a>
+            </span>
+            <span>&nbsp; /&nbsp; </span>
+            <a class="number-order-section-mobile" href="javascript:void(0)" style="cursor:initial" itemprop="item" itemscope itemtype="http://schema.org/Thing">
+                <span itemprop="name">@T("account.customerorderDetail") #@orderId</span>
+            </a>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <h1>@T("account.customerorders.orderdetails")</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row d-flex justify-content-center mt-3">
+    <div class="wop col-12 col-sm-11 col-md-11 col-lg-11">
+        <div class="row order-page-detail-area-mobile">
+            <div class="col-lg-6">
+                <div class="row">
+                    <div class="col-12 order-detail-area-desktop">
+                        <div class="card-order-text">
+                            @T("Order.OrderDate")
+                        </div>
+                        <div class="TextOrder"> @Model.CreatedOn.ToString("MM/dd/yyyy") </div><br />
+                    </div>
+
+                    <div class="col-12 order-detail-area-desktop">
+                        <div class="card-order-text">
+                            @T("Order.Order")
+                        </div>
+                        <div class="TextOrder"> #@orderId </div>
+                    </div>
+
+
+                    <div class="col-12 order-detail-area-mobile">
+                        <div class="card-order-text">
+                            @T("Order.OrderDate")
+                        </div>
+                        <div class=""> @Model.CreatedOn.ToString("MM/dd/yyyy") </div><br />
+                    </div>
+
+                    <div class="col-12 order-detail-area-mobile">
+                        <div class="TextOrder"> #@orderId </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="TextOrder">  @Model.TransId</div>
+                    </div>
+                    <div class="col-12">
+                        @if (!string.IsNullOrEmpty(Model.InvoiceNumber) && Model.InvoiceNumber != "0" && Model.InvoiceNumber != "")
+                        {
+                            @if (Model.InvoiceNumber.StartsWith("CS"))
+                            {
+                                @*@T("Order.CashSales") <p class="card-order-text">*@
+                                <div class="TextOrder">
+                                    @Model.InvoiceNumber
+                                </div>
+                                @*</p>*@
+                            }
+                            else
+                            {
+
+                                @*@T("Order.Invoice") <p class="card-order-text">*@
+                                <div class="TextOrder">
+                                    @Model.InvoiceNumber
+                                </div>
+                                @*</p>*@
+                            }
+                        }
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    @*<p class="card-order-title">Status</p>*@
+                    @{
+                        var orderStatus = "Pending";
+                        var PaymentStatusInfo = "Unpaid";
+
+                        var paymentClass = "btn-danger";
+                        var OrderStyle = "btn-info";
+
+                        PaymentStatusInfo = Model.PaymentStatus.ToString();
+                        orderStatus = Model.OrderStatus;
+
+                        if (Model.OrderStatus.ToString() == "Pending")
+                        {
+                            orderStatus = "Order Processing";
+                            OrderStyle = "btn-yellow";
+                        }
+
+
+                        if (Model.OrderStatus.ToString() == "Processing")
+                        {
+                            orderStatus = "Order Confirmed - Pending fulfillment";
+                            OrderStyle = "btn-info";
+                        }
+
+                        // Si customer.NetSuidId == 0  : Web Account
+                        if (Model.IsGuest)
+                        {
+                            if (Model.OrderStatus == "Complete" && Model.PaymentStatus.ToString() == "Paid")
+                            {
+                                orderStatus = "Completed";
+                                OrderStyle = "btn-payhome";
+                            }
+                        }
+                        else
+                        {
+                            // else Si no customer.NetSuidId > 0  : Account Customer
+                            if (Model.OrderStatus == "Completed" && Model.PaymentStatus.ToString() == "Pending")
+                            {
+                                orderStatus = "Completed";
+                                OrderStyle = "btn-payhome";
+                            }
+
+                            if (Model.OrderStatus == "Completed" && Model.PaymentStatus.ToString() == "Paid")
+                            {
+                                orderStatus = "Completed and Billed";
+                                OrderStyle = "btn-success";
+                            }
+                        }
+
+                        if (Model.PaymentStatus.ToString() == "Pending")
+                        {
+                            PaymentStatusInfo = "Unpaid";
+
+                            if (Model.OrderStatus == "Processing")
+                            {
+                                orderStatus = "Order Confirmed - Pending fulfillment";
+                                OrderStyle = "btn-info";
+                            }
+                        }
+
+                        if (Model.PaymentStatus.ToString() == "Paid")
+                        {
+                            paymentClass = "btn-success";
+
+                            if (Model.OrderStatus == "Processing")
+                            {
+                                orderStatus = "Order Processing";
+                                OrderStyle = "btn-info";
+                            }
+
+                            if (Model.OrderStatus == "Completed")
+                            {
+                                orderStatus = "Completed and Billed";
+                                OrderStyle = " btn-success";
+                            }
+                        }
+
+                        if (Model.OrderStatus == "Order Processing")
+                        {
+                            OrderStyle = "btn-yellow";
+                        }
+
+                        if (Model.OrderStatus.Contains("Ready"))
+                        {
+                            OrderStyle = "btn-info";
+                        }
+
+                        if (Model.OrderStatus.Contains("Completed"))
+                        {
+                            OrderStyle = "btn-green";
+
+                            if (Model.PaymentStatus.ToString() == "Paid")
+                            {
+                                orderStatus = "Completed and Billed";
+                                OrderStyle = "btn-success";
+                            }
+                        }
+
+                        if (Model.OrderStatus.Contains("Cancelled"))
+                        {
+                            OrderStyle = "btn-red";
+                        }
+                    }
+
+                    <div class="col-12">
+
+                        <br />
+                        <div class="card-order-title">
+                            Payment Method
+                        </div>
+                        <div class="TextOrder">
+                            <i class="nn- nn-card card-order-icon-size"></i> @Model.PaymentMethod
+                        </div>
+
+                        <br />
+                        <div class="card-order-title  ">
+                            @T("order.DeliveryMethod")
+                        </div>
+                        @if (Model.ShippingMethod != null)
+                        {
+                    <div class="TextOrder">
+                        @if (Model.ShippingMethod == "Customer Pick Up"|| Model.ShippingMethod.Contains("customer_pickup"))
+                        {
+
+                            if (Model.PickupAddress.Address1 == T("atlanta.office.address").Text)
+                            {
+                        <text> Pickup at </text>@T("atlanta.office")
+                            }
+                            if (Model.PickupAddress.Address1 == T("cincinnati.office.address").Text)
+                            {
+                        <text> Pickup at </text>@T("cincinnati.office")
+                            }
+                            if (Model.PickupAddress.Address1 == T("nashville.office.address").Text)
+                            {
+                        <text> Pickup at </text>  @T("nashville.office")
+                            }
+                        }
+                        else
+                        {
+                        @Model.ShippingMethod
+                        }
+                        @if (Model.ShippingMethod == "Delivery on N&N Truck")
+                        {
+                        <br />
+                        <div class="card-order-title">
+                            @T("order.ShippingStatus")
+                        </div>
+                            if (Model.ShippingStatus == "Shipped" && !string.IsNullOrEmpty(Model.NNDeliveryDate))
+                            {
+                                var date = Convert.ToDateTime(Model.NNDeliveryDate).ToString("MM-dd-yyyy");
+                        <br />
+                        <span>@T("order.EstDate"):</span><strong>@date</strong>
+                            }
+                            else
+                            {
+
+
+                                if (Model.ShippingStatus == "Shipped")
+                                {
+                        @Model.ShippingStatus
+
+                                }
+                                else
+                                {
+                                    if (Model.ShippingStatus == "Pending" || Model.ShippingStatus == "Ready for pickup")
+                                    {
+                        @T("order.shippingStatusProcessing")
+
+                                    }
+                                    else
+                                    {
+                        @T("order.ReadyForDelivery")
+                                    }
+
+                                }
+                            }
+
+
+                        }
+                        else
+                        {
+
+                        <br /><br />
+                        <div class="card-order-title">
+                            @T("order.ShippingStatus")
+                        </div>
+                        <div class="TextOrder">
+                            @if (Model.ShippingMethod == "Delivery on N&N Truck")
+                                {
+                                    if (Model.ShippingStatus == "Pending" || Model.ShippingStatus == "Ready for pickup")
+                                    {
+                            @T("order.shippingStatusProcessing")
+                                    }
+                                    else
+                                    {
+                            @T("order.ReadyForDelivery")
+                                    }
+                                }
+                                else
+                                {
+                                    if (Model.ShippingMethod == "Customer Pick Up" || Model.ShippingMethod == "Pickup at Nashville Office"
+                                        || Model.ShippingMethod == "Customer Pick Up" || Model.ShippingMethod == "Customer Pick Up")
+                                    {
+
+                                        if (Model.ShippingStatus == "Pending" || Model.ShippingStatus == "Ready for pickup")
+                                        {
+
+                            @T("order.shippingStatusProcessing")
+
+                                        }
+                                        else
+                                        {
+                                            if (Model.ShippingStatus == "Shipped")
+                                            {
+                            @T("Completed")
+                                            }
+                                            else
+                                            {
+                                                if (Model.ShippingStatus == "Booked")
+                                                {
+                            @T("enums.nop.core.domain.shipping.shippingstatus.picked")
+                                                }
+                                                else
+                                                {
+                            @Model.ShippingStatus
+                                                }
+
+
+                                            }
+
+                                        }
+                                    }
+                                    else
+                                    {
+                            @if (Model.ShippingStatus == "Notdelivered")
+                                        {
+                            @T("order.Notdelivered")
+                                        }
+                                        else
+                                        {
+                                            if (Model.ShippingStatus == "Pending" || Model.ShippingStatus == "Ready for pickup")
+                                            {
+                            @T("order.shippingStatusProcessing")
+                                            }
+                                            else
+                                            {
+                                                if (Model.ShippingStatus == "Booked")
+                                                {
+                            @T("enums.nop.core.domain.shipping.shippingstatus.picked")
+                                                }
+                                                else
+                                                {
+                            @Model.ShippingStatus
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+                        </div>
+
+                            //}
+                        }
+
+                    </div>
+                                    <br />
+                                }else{
+
+                                }
+
+                                @if (Model.ShipmentDetails != null)
+                                {
+                                    @if (Model.ShippingStatus == "Shipped")
+                                    {
+                                        if (!string.IsNullOrEmpty(Model.ShipmentDetails?.TrackingNumberUrl))
+                                        {
+                                            <a href="@Model.ShipmentDetails.TrackingNumberUrl" target="_blank" class="margin-l-10" style="color: #3c8dbc; font-weight: 900">@T("orderdetail.viewTrackingInfo")</a>
+                                            <br /><br />
+                                        }
+                                    }
+                                    @if (Model.ShipmentDetails?.DeliveryDateEstimate != null)
+                                    {
+                                        <p class="card-order-title">@T("orderdetail.DeliveryDateEstimate")</p>
+                                        <p class="card-order-text3">@Model.ShipmentDetails.DeliveryDateEstimate</p>
+                                        <br />
+                                    }
+                                }
+
+                                <div class="card-order-title ">Contact Info</div>
+                                <div class="TextOrder">@Model.BillingAddress?.FirstName @Model.BillingAddress?.LastName</div>
+                                <div class="TextOrder">
+                                    @if (Model.BillingAddress.PhoneNumber != "" && Model.BillingAddress.PhoneNumber != "0")
+                                    {@Model.BillingAddress?.PhoneNumber}
+                                </div>
+                                <div class="TextOrder">@Model.BillingAddress?.Email</div>
+                                <br />
+
+
+
+
+                                <div class="TextOrder">
+                                    @if (Model.ShippingMethod != "Customer Pick Up" && Model.ShippingAddress.CompanyEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.Company))
+                                    {
+                                        <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                        @if (Model.ShippingAddress.CompanyEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.Company))
+                                        {
+                                            <div class="TextOrder">@Model.ShippingAddress.Company</div>
+                                        }
+
+                                        @if (Model.ShippingAddress.StreetAddressEnabled)
+                                        {
+                                            <div class="TextOrder">@Model.ShippingAddress.Address1</div>
+                                        }
+                                        @if (Model.ShippingAddress.StreetAddress2Enabled && !string.IsNullOrEmpty(Model.ShippingAddress.Address2))
+                                        {
+                                            <div class="TextOrder">@Model.ShippingAddress.Address2</div>
+                                        }
+
+                                        @if (Model.ShippingAddress.CityEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.City) ||
+Model.ShippingAddress.CountyEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.County) ||
+Model.ShippingAddress.StateProvinceEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.StateProvinceName) ||
+Model.ShippingAddress.ZipPostalCodeEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.ZipPostalCode))
+                                        {
+                                            <div class="TextOrder">
+                                                @if (Model.ShippingAddress.CityEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.City))
+                                                {
+                                                    <text> @Model.ShippingAddress.City</text>
+
+                                                    @if (Model.ShippingAddress.CountyEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.County) ||
+Model.ShippingAddress.StateProvinceEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.StateProvinceName) ||
+Model.ShippingAddress.ZipPostalCodeEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.ZipPostalCode))
+                                                    {
+                                                        <text>,</text>
+                                                    }
+                                                }
+
+                                                @if (Model.ShippingAddress.CountyEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.County))
+                                                {
+                                                    @Model.ShippingAddress.County
+                                                    @if (Model.ShippingAddress.StateProvinceEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.StateProvinceName) ||
+Model.ShippingAddress.ZipPostalCodeEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.ZipPostalCode))
+                                                    {
+                                                        <text>,</text>
+                                                    }
+                                                }
+
+                                                @if (Model.ShippingAddress.StateProvinceEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.StateProvinceName))
+                                                {
+                                                    @Model.ShippingAddress.StateProvinceName
+                                                    @if (Model.ShippingAddress.ZipPostalCodeEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.ZipPostalCode))
+                                                    {
+                                                        <text>,</text>
+                                                    }
+                                                }
+
+                                                @if (Model.ShippingAddress.ZipPostalCodeEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.ZipPostalCode))
+                                                {
+                                                    @Model.ShippingAddress.ZipPostalCode
+                                                }
+                                            </div>
+                                        }
+
+                                        @if (Model.ShippingAddress.CountryEnabled && !string.IsNullOrEmpty(Model.ShippingAddress.CountryName))
+                                        {
+                                            <div class="TextOrder">
+                                                @Model.ShippingAddress.CountryName
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (Model.ShippingMethod == "Customer Pick Up")
+                                        {
+                                            //var atlanta = ;
+                                            if (Model.PickupAddress.Address1 == T("atlanta.office.address").Text)
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("atlanta.office")<br />
+
+                                                    @T("atlanta.office.address")
+                                                    <text>, </text> <br /> @T("atlanta.office.address.state")
+                                                </div>
+                                            }
+                                            if (Model.PickupAddress.Address1 == T("cincinnati.office.address").Text)
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("cincinnati.office")<br />
+
+                                                    @T("cincinnati.office.address")
+                                                    <text>, </text> <br /> @T("cincinnati.office.address.state")
+                                                </div>
+
+
+                                            }
+                                            if (Model.PickupAddress.Address1 == T("nashville.office.address").Text)
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("nashville.office")<br />
+
+                                                    @T("nashville.office.address")
+                                                    <text>, </text> <br /> @T("nashville.office.address.state")
+                                                </div>
+
+
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (Model.ShippingMethod == "Pickup at Atlanta Office")
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("atlanta.office")<br />
+
+                                                    @T("atlanta.office.address")
+                                                    <text>, </text> <br /> @T("atlanta.office.address.state")
+                                                </div>
+                                            }
+                                            if (Model.ShippingMethod == "Pickup at Cincinnati Office")
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("cincinnati.office")<br />
+
+                                                    @T("cincinnati.office.address")
+                                                    <text>, </text> <br /> @T("cincinnati.office.address.state")
+                                                </div>
+
+
+                                            }
+                                            if (Model.ShippingMethod == "Pickup at Nashville Office")
+                                            {
+                                                <div class="card-order-title " style="padding-bottom:0px;">Shipping Info</div>
+                                                <div class="TextOrder">
+                                                    @T("nashville.office")<br />
+
+                                                    @T("nashville.office.address")
+                                                    <text>, </text> <br /> @T("nashville.office.address.state")
+                                                </div>
+
+
+                                            }
+                                        }
+
+                                    }
+                                </div> <br /><br />
+
+
+
+                            </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6 d-flex">
+            <div class="row colorGeneralBackgroundGray my-auto w-50 ml-auto order-summary">
+                <div class="col-12 col-lg-12 p-4">
+                    <p class="order-sumary-title text-left">Order Summary</p>
+                    <div class="row">
+                        <div class="col-6 col-md-4">
+                            <p class="order-sumary-label">Subtotal</p>
+                        </div>
+                        <div class="col-6 col-md-5">
+
+                            <p class="order-sumary-number">$<span id="myValue" class="order-sumary-number">@Model.OrderSubtotal</span></p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 col-md-4">
+                            <p class="order-sumary-label">Shipping</p>
+                        </div>
+                        <div class="col-6 col-md-5">
+                            <p class="order-sumary-number"> @Model.OrderShipping</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 col-md-4">
+                            <p class="order-sumary-label">Tax</p>
+                        </div>
+                        <div class="col-6 col-md-5">
+                            <p class="order-sumary-number">@Model.Tax</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 col-md-4">
+                            <p class="order-sumary-label">Discount</p>
+                        </div>
+                        <div class="col-6 col-md-5">
+                            <p class="order-sumary-number">@Model.OrderTotalDiscount</p>
+                        </div>
+                    </div>
+                    <div class="line-div"></div>
+                    <div class="row">
+                        <div class="col-6 col-md-4">
+                            <p class="order-sumary-total">Total</p>
+                        </div>
+                        <div class="col-6 col-md-5">
+                            <p class="order-sumary-number-total">$<span class="order-sumary-number-total" id="total">@Model.OrderTotal</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+        <div class="row justify-content-end">
+            <div class="col-lg-2 PrintPdf">
+                @if (!Model.PrintMode)
+                {
+                    <div class="">
+                        @if (Model.PdfInvoiceDisabled)
+                        {
+                            @*<a href="@Url.RouteUrl("GetOrderPdfInvoice", new { orderId = Model.Id })" class="btn-pdf-printer button-2 pdf-invoice-button">@T("Order.GetPDFInvoice")</a>*@
+                        }
+                        else
+                        {
+                            <a href="@Url.RouteUrl("GetOrderPdfInvoice", new { orderId = Model.Id })" class="btn-pdf-printer button-2 pdf-invoice-button pdf-invoice-button-order-detail-mobile">@T("Order.GetPDFInvoice")</a>
+                        }
+                        @*<a href="@Url.RouteUrl("PrintOrderDetails", new { orderId = Model.Id })" target="_blank" class="button-2 pdf-invoice-button">@T("Order.Print")</a>}*@
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="row list-items-order-detail-mobile">
+            @if (Model.Items.Count > 0)
+            {
+                @foreach (var item in Model.Items)
+                {
+                    <div class="col-12">
+                        <div class="row item-cart-zone">
+                            <div class="woplr col-12 cart-zone-nitems-mobile" style="margin-bottom: 5px !important;">
+                                <div class="row cart-zone-items-mobile" style="padding-top: 20px !important; padding-bottom: 20px !important; border-radius: 5px !important;">
+                                    <div class="col-12 wop">
+                                        <div class="row" style="border-bottom: 1px solid #b0bec5;">
+                                            <div class="col-4">
+                                                <img src="@item.picture">
+                                            </div>
+                                            <div class="col-8 cart-items-title-mobile">
+                                                <div class="cart-items-quantity-mobile"><b>@item.ProductName</b></div>
+                                                <div class="cart-items-quantity-mobile">Vendor: <b>@item.VendorName</b></div>
+                                                <div class="cart-items-quantity-mobile">Quantity: <b>@item.Quantity</b></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 wop">
+                                        <div class="row">
+                                            <div class="col-6 ">
+                                                <b>Total</b>
+                                            </div>
+                                            <div class="col-6 cart-items-total-mobile">
+                                                <b><span id="O_SubTotal_mobile@(item.Id)">@item.SubTotal</span></b>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <div class="row list-items-order-detail-desktop">
+            <div class="col-12">
+                @*@if (!Model.PrintMode && Model.Shipments.Count > 0)
+                    {
+                    }*@
+                @if (Model.Items.Count > 0)
+                {
+                    //if (!Model.PrintMode && Model.OrderNotes.Count > 0)
+                    //{
+                    //}
+
+                    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderDetailsPageBeforeproducts, additionalData = Model })
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-lg-6">
+                                <div class="row colorGeneralBackgroundGray p-4">
+                                    <div class="col-lg-2 d-flex">
+                                        <img class="img-fluid my-auto mx-auto" src="@item.picture" />
+                                    </div>
+                                    <div class="col-lg-7 d-flex">
+                                        <div class="my-auto">
+                                            @if (!Model.PrintMode)
+                                            {
+                                                <div style="text-align:left" class="attributes order-sumary-attributes">
+                                                    <strong><a href="@Url.RouteUrl("Product", new { SeName = item.ProductSeName })">@item.ProductName</a></strong>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                @item.ProductName}
+                                            @if (!string.IsNullOrEmpty(item.AttributeInfo))
+                                            {
+                                                <div style="text-align:left;color:#546E7A" class="attributes">
+                                                    @Html.Raw(item.AttributeInfo)
+                                                </div>
+                                            }
+
+                                            @if (!string.IsNullOrEmpty(item.RentalInfo))
+                                            {
+                                                <div style="text-align:left;color:#546E7A" class="rental-info">
+                                                    @Html.Raw(item.RentalInfo)
+                                                </div>
+                                            }
+                                            @if (item.DownloadId > 0)
+                                            {
+                                                <div style="text-align:left;color:#546E7A" class="download">
+                                                    <a href="@Url.RouteUrl("GetDownload", new { orderItemId = item.OrderItemGuid })">@T("DownloadableProducts.Fields.Download")</a>
+                                                </div>
+                                            }
+                                            @if (item.LicenseId > 0)
+                                            {
+                                                <div style="text-align:left;color:#546E7A" class="download license">
+                                                    <a href="@Url.RouteUrl("GetLicense", new { orderItemId = item.OrderItemGuid })">@T("DownloadableProducts.Fields.DownloadLicense")</a>
+                                                </div>
+                                            }
+                                            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderDetailsProductLine, additionalData = item })
+                                            @*<div class="rental-info order-sumary-vendor">
+                                                    Vendor: <strong>@item.VendorName</strong>
+                                                </div>*@
+                                            <div class="rental-info order-sumary-vendor">
+                                                Quantity: <strong>@item.Quantity</strong>
+                                            </div>
+                                            @if (!item.Published)
+                                            {
+
+                                                <div class="message-error">
+                                                    <ul>
+                                                        <li style="text-align: left;">@T("OrderDetail.Productnotavailable")</li>
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 d-flex">
+                                        <div class=" mt-auto">
+
+                                            <span class="product-unit-price product-order-summary colorGeneralTextRed">@item.SubTotal</span>
+                                            @if (item.Discount > 0)
+                                            {
+                                                <br><div class="discount">You save: $@item.Discount.ToString("#.00")</div><br>
+                                            }
+
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderDetailsPageAfterproducts, additionalData = Model })
+                }
+                @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.OrderDetailsPageBottom, additionalData = Model })
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .BorderBoxGen p {
+        margin-bottom: 0;
+    }
+
+    .BorderBoxGen .order-sumary-number {
+        margin-bottom: 0;
+        line-height: 22px;
+    }
+
+    .card-order-title {
+        font-size: 20px !important;
+        font-weight: bold;
+        color: #546E7A;
+    }
+
+    .card-order-text {
+        color: #546E7A !important;
+    }
+</style>
+
+
+<script>
+    var value22 = document.getElementById("myValue").innerHTML; 
+    var formattedValue22 = parseFloat(value22).toFixed(2);
+    document.getElementById("myValue").innerHTML = formattedValue22.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+
+    var value3 = document.getElementById("total").innerHTML;
+    var formattedValue3 = parseFloat(value3).toFixed(2);
+    document.getElementById("total").innerHTML = formattedValue3.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+
+</script>
+

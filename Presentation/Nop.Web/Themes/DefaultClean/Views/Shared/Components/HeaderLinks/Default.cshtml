@@ -1,0 +1,249 @@
+﻿@model HeaderLinksModel
+@inject Nop.Core.IWebHelper webHelper
+@using System.Text.Encodings.Web
+<link rel="stylesheet" href="/lib/fontAwesome/css/font-awesome.css">
+<link rel="stylesheet" href="/lib/fontAwesome/css/font-awesome.min.css">
+
+<style>
+    .header-upper, .header-lower {
+        width: 100%;
+    }
+
+        .header-upper label {
+            
+            font-style: normal;
+            font-size: 14px;
+            color: #ECEFF1;
+        }
+
+    a:hover, a:focus {
+        text-decoration: none;
+    }
+
+    .header-links > ul > li > a:hover, .header-links > ul > li > a label:hover {
+        color: #f5f5f5;
+        cursor: pointer;
+        text-align: center;
+    }
+
+    .menu-title {
+        background: #d0021b;
+        color: white;
+    }
+
+    .price {
+        
+        font-style: normal;
+        font-weight: bold;
+        font-size: 24px;
+        line-height: 28px;
+        color: black;
+    }
+
+    @@media (max-width: 1215px) {
+        /*
+
+        .item-header-text {
+            display: none;
+        }
+        .header-links-wrapper{
+            float:left !important;
+        }
+        .search-box{
+            text-align: left !important;
+        }
+        */
+        .nn-search:before {
+            font-size: 15px;
+        }
+    }
+
+    @@media (max-width: 1024px) {
+        .header-links-wrapper {
+            display: flex !important;
+            position: relative;
+            background: #d0021b;
+            margin: 0 auto;
+            width: 100%;
+            padding: 10px;
+            justify-content: end;
+        }
+    }
+
+    /*@@media (max-width: 1024px) {*/
+        /*
+        .header-links-wrapper {
+            float: left;
+        }
+
+        .header-lower{
+            display: none;
+        }
+        */
+        /*.currency-selector {
+            display: none !important;
+        }
+    }*/
+
+    @@media(max-width: 1000px) {
+    }
+
+    .dropdown-menu1 {
+        position: absolute;
+        margin-top: 50px;
+        width: 150px;
+        display: none;
+        background: white;
+        margin-left: -100px;
+        padding: 10px;
+        text-align: right;
+    }
+
+        .dropdown-menu1 > a {
+            color: #777;
+        }
+
+    #navbarDropdown:hover ~ #divNavbar, #navbarDropdown:hover > #divNavbar {
+        display: block;
+    }
+
+    #navbarDropdown:hover ~ #divNavbar, #navbarDropdown:hover > #divNavbar {
+        display: block;
+    }
+</style>
+<script>
+    $('.logosinautenticacion').removeClass('d-none');
+    $('.logoconautenticacion').removeClass('d-none');
+</script>
+<div class="row" id="header-general" style="margin-left: -100px;">
+
+    <div class="col-sm-12 col-md-12 col-lg-12">
+
+        @*@await Component.InvokeAsync("CompanySelector")*@
+        <div class="form-inline d-flex justify-content-end">
+            @await Component.InvokeAsync("CompanySelector")
+            <div class="searchBoxMenu"> @await Component.InvokeAsync("SearchBox")</div>
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.HeaderLinksBefore })
+            @if (Model.IsAuthenticated)
+            {
+                <script>
+                    $('.logosinautenticacion').addClass('d-none');
+                </script>
+                <div id="navbarDropdown">
+                    <a class="nav-link dropdown-toggle my-auto" href="#">
+                        <div class="form-inline">
+                            <i class="nn- nn-user-light footer-icon-sizef float-left style-name-user" aria-hidden="true"></i>
+                            <label class="item-header-text">@T("Account.Hi") @Model.Name @* @Model.CustomerName*@</label>
+                            <img width="15" height="15" src="~/images/caret-right-solid.svg" />
+                        </div>
+                    </a>
+
+                    <div class="dropdown-menu1" id="divNavbar" style="z-index:99999">
+                        <a class="dropdown-item" href="/order/history">@T("Account.MyOrders")</a> <!--Cambiar url (fredy moreno)-->
+                        <div class="dropdown-divider"></div>
+                        @{
+                            if (Model.AccountCustomer)
+                            {
+                                <a class="dropdown-item" href="/order/Invoice">@T("Account.MyInvoice")</a> <!--Cambiar url (fredy moreno)-->
+                                <div class="dropdown-divider"></div>
+                            }
+                        }
+
+                        <a class="dropdown-item" href="@Url.RouteUrl("CustomerInfo")">@T("Account.Myprofile")</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="@Url.RouteUrl("CustomerChangePassword")">@T("Account.changepassword")</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="@Url.RouteUrl("Logout")">@T("Account.Logout")</a>
+                    </div>
+
+                </div> }
+            else
+            {
+                <script>
+                    $('.logoconautenticacion').addClass('d-none');
+                </script>
+                var returnUrl = webHelper.GetRawUrl(Context.Request);
+
+                <div style="display:none">
+                    <a href="@Url.RouteUrl("ValidateRegister", new { returnUrl })" class="ico-register">
+                        <i class="nn- nn-user-light footer-icon-size float-left mr-1" aria-hidden="true"></i>
+                        <label class="item-header-text">@T("Account.Register")</label>
+                    </a>
+                </div>
+                <div class="ml-4">
+                    <a href="@Url.RouteUrl("Login", new { returnUrl })" class="ico-login">
+                        <i class="nn- nn-lock-alt-light footer-icon-size float-left mr-1" aria-hidden="true"></i>
+                        <label class="item-header-text float-left">@T("Account.Login")</label>
+                    </a>
+                </div>
+                <div class="ml-4">
+                    <a class="item-header-text" href="/order/check">
+                        <i class="nn- nn-fax float-left mr-1"></i>
+                        <label class="item-header-text float-left">@T("Account.checkMyorder")</label>
+                    </a>
+                </div>}
+            @if (Model.AllowPrivateMessages)
+            {
+                <div class="ml-4">
+                    <a href="@Url.RouteUrl("PrivateMessages", new { tab = "" })" class="ico-inbox">
+                        <span class="inbox-label float-left">@T("PrivateMessages.Inbox")</span>
+                        <span class="inbox-unread float-left">@Model.UnreadPrivateMessages</span>
+                    </a>
+                </div>}
+            @if (Model.WishlistEnabled)
+            {
+                <div class="ml-4 mt-1">
+                    <a href="@Url.RouteUrl("Wishlist")" class="ico-wishlist">
+                        <i class="nn- nn-heart-light footer-icon-size float-left mr-1" aria-hidden="true"></i>&nbsp;
+                        <label class="item-header-text float-left mr-1">@T("Wishlist")</label>
+                        <label class="item-header-text float-left" id="TotalWishlistItems"
+                               style="">@T("Wishlist.HeaderQuantity", Model.WishlistItems)</label>
+                    </a>
+                </div>}
+            @if (Model.ShoppingCartEnabled)
+            {
+                <div id="topcartlink1" class="ml-4">
+                    <a href="@Url.RouteUrl("ShoppingCart")" class="ico-cart">
+                        <i class="nn- nn-car footer-icon-size float-left mr-1" aria-hidden="true"></i>
+                        <label class="item-header-text float-left mr-1">@T("ShoppingCart")</label>
+                        <label class="item-header-text float-left" id="TotalShoppingCartItems"
+                               style=""
+                               >@T("ShoppingCart.HeaderQuantity", Model.ShoppingCartItems) </label>
+                    </a>
+                </div>}
+            @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.HeaderLinksAfter })
+        </div>
+
+    </div>
+</div>
+
+
+
+@if (Model.AllowPrivateMessages && !string.IsNullOrEmpty(Model.AlertMessage))
+{
+    //new private message notification
+    <script asp-location="Footer">
+            $(document).ready(function () {
+                displayPopupNotification('@Html.Raw(JavaScriptEncoder.Default.Encode(Model.AlertMessage))', 'success', false);
+            });
+    </script>
+}
+@if (Model.ShoppingCartEnabled)
+{
+    <script asp-location="Footer">
+        $(document).ready(function () {
+            $('.header').on('mouseenter', '#topcartlink1', function () {
+                $('#flyout-cart').addClass('active');
+            });
+            $('.header').on('mouseleave', '#topcartlink1', function () {
+                $('#flyout-cart').removeClass('active');
+            });
+            $('.header').on('mouseenter', '#flyout-cart', function () {
+                $('#flyout-cart').addClass('active');
+            });
+            $('.header').on('mouseleave', '#flyout-cart', function () {
+                $('#flyout-cart').removeClass('active');
+            });
+        });
+    </script>
+}

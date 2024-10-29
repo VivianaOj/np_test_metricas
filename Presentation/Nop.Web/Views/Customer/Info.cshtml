@@ -1,0 +1,732 @@
+﻿@using Nop.Core
+@model CustomerInfoModel
+@inject Nop.Core.IWebHelper webHelper
+@{
+	Layout = "_ColumnsTwo";
+
+	//title
+	Html.AddTitleParts(T("PageTitle.Account").Text);
+	//page class
+	Html.AppendPageCssClassParts("html-account-page");
+	Html.AppendPageCssClassParts("html-customer-info-page");
+}
+
+@section left
+    {
+	@await Component.InvokeAsync("CustomerNavigation", new { selectedTabId = CustomerNavigationEnum.Info })
+}
+
+<style>
+	.input-customer {
+		padding: 10px;
+	}
+
+	.pay-target {
+		margin-bottom: 10px;
+	}
+
+		.pay-target input[type="checkbox"] {
+			width: 1.3em;
+			height: 1.3em;
+			background-color: white;
+			border-radius: 50%;
+			vertical-align: middle;
+			border: 1px solid #ddd;
+			-webkit-appearance: none;
+			outline: none;
+			cursor: pointer;
+			margin-top: 0px;
+		}
+
+			.pay-target input[type="checkbox"]:checked {
+				background-color: deepskyblue;
+			}
+	.modal-backdrop.in{
+		display:none;
+	}
+</style>
+
+<div class="page account-page customer-info-page">
+	<div class="page-title" style="text-align:center;">
+		<h1>User Profile</h1>
+	</div>
+	<div class="page-body">
+		<form asp-route="CustomerInfo" method="post">
+			<br>
+			<h2>Your Personal Details</h2>
+			<div class="row" style="padding:5%;">
+
+				<div class="col-md-6 input-customer">
+					<label asp-for="FirstName" asp-postfix=":"></label>
+					<nop-required />
+					<input class="form-control" asp-for="FirstName" />					
+					<span asp-validation-for="FirstName"></span>
+				</div>
+				<div class="col-md-6 input-customer">
+					<label asp-for="LastName" asp-postfix=":"></label>
+					<nop-required />
+					<input class="form-control" asp-for="LastName" />
+					<span asp-validation-for="LastName"></span>
+				</div>
+				<div class="col-md-6 input-customer">
+					<label>Main phone:</label>
+					<input class="form-control" />
+				</div>
+				<div class="col-md-6 input-customer">
+					<label asp-for="Email" asp-postfix=":"></label>
+					<nop-required />
+					<input class="form-control" asp-for="Email" />
+					<span asp-validation-for="Email"></span>
+					@if (!string.IsNullOrEmpty(Model.EmailToRevalidate))
+					{
+						<div class="inputs">
+							<label asp-for="EmailToRevalidate"></label>
+							<span class="email-to-revalidate">@Model.EmailToRevalidate</span>
+							<span class="email-to-revalidate-note">
+								<em>@T("Account.Fields.EmailToRevalidate.Note")</em>
+							</span>
+						</div>
+					}
+					@if (Model.UsernamesEnabled)
+					{
+						if (Model.AllowUsersToChangeUsernames)
+						{
+							<div class="inputs">
+								<label asp-for="Username" asp-postfix=":"></label>
+								<input asp-for="Username" />
+								<nop-required />
+								<span asp-validation-for="Username"></span>
+								@if (Model.CheckUsernameAvailabilityEnabled)
+								{
+									@await Html.PartialAsync("_CheckUsernameAvailability")
+								}
+							</div>
+						}
+						else
+						{
+							<div class="inputs">
+								<label asp-for="Username" asp-postfix=":"></label>
+								<span class="readonly-username">@Model.Username</span>
+							</div>
+						}
+					}
+				</div>
+				<div class="col-md-6 input-customer">
+					<label>Mobile phone:</label>
+					<input class="form-control" />
+				</div>
+				<div class="col-md-6 input-customer">
+					<label>Office phone:</label>
+					<input class="form-control" />
+				</div>
+				<div class="col-md-12 input-customer">
+				@if (Model.DateOfBirthEnabled)
+					{
+						<div class="inputs date-of-birth">
+							<label>@T("Account.Fields.DateOfBirth"):</label>
+							<nop-date-picker asp-day-name="@Html.NameFor(x => x.DateOfBirthDay)"
+											 asp-month-name="@Html.NameFor(x => x.DateOfBirthMonth)"
+											 asp-year-name="@Html.NameFor(x => x.DateOfBirthYear)"
+											 asp-begin-year="@(DateTime.Now.Year - 110)"
+											 asp-end-year="@(DateTime.Now.Year)"
+											 asp-selected-day="@Model.DateOfBirthDay"
+											 asp-selected-month="@Model.DateOfBirthMonth"
+											 asp-selected-year="@Model.DateOfBirthYear" />
+							@if (Model.DateOfBirthRequired)
+							{
+								<nop-required />
+							}
+							<span asp-validation-for="DateOfBirthDay"></span>
+							<span asp-validation-for="DateOfBirthMonth"></span>
+							<span asp-validation-for="DateOfBirthYear"></span>
+						</div>
+					}
+				</div>
+				<div class="col-md-12 input-customer">
+				@if (Model.GenderEnabled)
+					{
+						<div class="inputs">
+							<label>@T("Account.Fields.Gender"):</label>
+							<div class="gender">
+								<span class="male">
+									<input type="radio" asp-for="Gender" value="M" checked="@(Model.Gender == "M")" id="gender-male" />
+									<label class="forcheckbox" for="gender-male">@T("Account.Fields.Gender.Male")</label>
+								</span>
+								<span class="female">
+									<input type="radio" asp-for="Gender" value="F" checked="@(Model.Gender == "F")" id="gender-female" />
+									<label class="forcheckbox" for="gender-female">@T("Account.Fields.Gender.Female")</label>
+								</span>
+							</div>
+						</div>
+					} 
+				</div>
+				<div class="col-md-12 input-customer">
+					<label><br /><br />Payment Methods</label>
+					<div class="row">
+						<div class="col-md-6 input-customer">
+							<div class="form-control pay-target">
+								<input type="checkbox" style="float: left;" />
+								<p style="float:left; margin-left:5%">Visa *** 876</p>
+								<a href="" style="float: right;"><i class="fa fa-remove"></i></a>
+							</div>
+						</div>
+						<div class="col-md-6 input-customer">
+							<div class="form-control pay-target">
+								<input type="checkbox" style="float: left;" />
+								<p style="float:left; margin-left:5%">Visa *** 876</p>
+								<a href="" style="float: right;"><i class="fa fa-remove"></i></a>
+							</div>
+						</div>
+						<div class="col-md-6 input-customer"><br /></div>
+						
+					</div>
+				</div>
+			</div>
+			<h2 style="float:left">Company:</h2>
+			<div style="float:left; padding:2.5%">
+				<select name="company" id="company" class="form-control">
+					<option>TMT AL Brimingham</option>
+				</select>
+			</div>
+			<div style="width:100%;height:80px;"></div>
+
+			@if (Model.CompanyEnabled || Model.DisplayVatNumber)
+			{
+				<div class="row" style="padding:4%;">
+					<label class="col-md-12"><br />Company Details:</label>
+					<div class="col-md-6 input-customer">
+						<label>Contact:</label>
+						<input class="form-control" />
+					</div>
+					<div class="col-md-6 input-customer">
+						<label>Email:</label>
+						<input class="form-control" />
+					</div>
+					<div class="col-md-6 input-customer">
+						<label>Contact number:</label>
+						<input class="form-control" />
+					</div>
+					<div class="col-md-6 input-customer">
+						<label>Primary location:</label>
+						<input class="form-control" />
+					</div>
+					<div class="col-md-12 input-customer">
+						<label><br />Shipping Addresses</label>
+					</div>
+					<div class="col-md-9 input-customer">
+						<label>Your address 1:</label>
+						<div class="form-control">
+							<p style="float:left;">United States - Alabama - Pelham -2880 Pelham Parkway - 36523</p>
+							<div class="row" style="float:right;width:100px;">
+								<div class="col-md-6">
+									<a data-toggle="collapse" href="#collapseAddress" role="button" aria-expanded="false" aria-controls="collapseAddress"><i class="glyphicon glyphicon-pencil"></i></a>
+								</div>
+								<div class="col-md-6">
+									<a href="javascript:;"><i class="glyphicon glyphicon-trash"></i></a>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+					<div class="col-md-12 input-customer">
+						<label><br />Billing Addresses</label>
+					</div>
+					<div class="col-md-9 input-customer">
+						<label>Your address 1:</label>
+						<div class="form-control">
+							<p style="float:left;">United States - Alabama - Pelham -2880 Pelham Parkway - 36523</p>
+							<div class="row" style="float:right;width:100px;">
+								<div class="col-md-6">
+									<a data-toggle="collapse" href="#collapseAddress" role="button" aria-expanded="false" aria-controls="collapseAddress"><i class="glyphicon glyphicon-pencil"></i></a>
+								</div>
+								<div class="col-md-6">
+									<a href="javascript:;"><i class="glyphicon glyphicon-trash"></i></a>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+				<div class="collapse" id="collapseAddress">
+					<div class="card card-body">
+						<div class="edit-address">
+							<div class="row">
+								<div class="col-6 col-md-6">
+									<div class="form-group">
+										<label for="Address_FirstName">First name:</label> 
+										<input class="form-control" type="text" data-val="true" data-val-required="First name is required." id="Address_FirstName" name="Address.FirstName" value="John"> 
+										<span class="field-validation-valid" data-valmsg-for="Address.FirstName" data-valmsg-replace="true"></span>
+									</div>
+								</div>
+								<div class="col-6 col-md-6">
+									<div class="form-group">
+										<label for="Address_LastName">Last name:</label> 
+										<input class="form-control" type="text" data-val="true" data-val-required="Last name is required." id="Address_LastName" name="Address.LastName" value="Smith"> 
+										<span class="field-validation-valid" data-valmsg-for="Address.LastName" data-valmsg-replace="true"></span>
+									</div>
+								</div>
+							</div>
+							<div class="row"><div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_Email">Email:</label> 
+									<input class="form-control" type="email" data-val="true" data-val-email="Wrong email" data-val-required="Email is required." id="Address_Email" name="Address.Email" value="admin@yourStore.com"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.Email" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_Company">Company:</label> 
+									<input class="form-control" type="text" id="Address_Company" name="Address.Company" value="Nop Solutions Ltd"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.Company" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_CountryId">Country:</label> 
+									<select class="form-control" data-trigger="country-select" data-url="/country/getstatesbycountryid" data-stateprovince="#Address_StateProvinceId" data-loading="#states-loading-progress" data-val="true" data-val-required="Country is required." id="Address_CountryId" name="Address.CountryId">
+										<option value="0">Select country</option>
+									</select> 
+									<span class="field-validation-valid" data-valmsg-for="Address.CountryId" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_StateProvinceId">State / province:</label> 
+									<select class="form-control" id="Address_StateProvinceId" name="Address.StateProvinceId">
+										<option value="0">Select state</option><option value="1">AA (Armed Forces Americas)</option>
+									</select> 
+									<span id="states-loading-progress" style="display:none" class="please-wait">Wait...</span> 
+									<span class="field-validation-valid" data-valmsg-for="Address.StateProvinceId" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_City">City:</label> 
+									<input class="form-control" type="text" data-val="true" data-val-required="City is required" id="Address_City" name="Address.City" value="New York"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.City" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_ZipPostalCode">Zip / postal code:</label> 
+									<input class="form-control" type="text" data-val="true" data-val-required="Zip / postal code is required" id="Address_ZipPostalCode" name="Address.ZipPostalCode" value="10021"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.ZipPostalCode" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_Address1">Address 1:</label> 
+									<input class="form-control" type="text" data-val="true" data-val-required="Street address is required" id="Address_Address1" name="Address.Address1" value="21 West 52nd Street"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.Address1" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_PhoneNumber">Phone number:</label> 
+									<input class="form-control" type="tel" onkeypress="return isNumber(event)" onchange="checkDigit(this) " maxlength="10" data-val="true"  data-val-required="Contact number is required" id="Address_PhoneNumber" name="Address.PhoneNumber" value="12345678"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.PhoneNumber" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_Address2">Address 2:</label> 
+									<input class="form-control" type="text" id="Address_Address2" name="Address.Address2"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.Address2" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+							<div class="col-6 col-md-6">
+								<div class="form-group">
+									<label for="Address_FaxNumber">Fax number:</label> 
+									<input class="form-control" type="text" id="Address_FaxNumber" name="Address.FaxNumber"> 
+									<span class="field-validation-valid" data-valmsg-for="Address.FaxNumber" data-valmsg-replace="true"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			}
+			<div asp-validation-summary="ModelOnly" class="message-error"></div>
+			
+
+		
+			@if (Model.CompanyEnabled || Model.DisplayVatNumber)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.CompanyDetails")</strong>
+					</div>
+					<div class="form-fields">
+						@if (Model.CompanyEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="Company" asp-postfix=":"></label>
+								<input asp-for="Company" />
+								@if (Model.CompanyRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="Company"></span>
+							</div>
+						}
+						@if (Model.DisplayVatNumber)
+						{
+							<div class="inputs">
+								<label asp-for="VatNumber" asp-postfix=":"></label>
+								<input asp-for="VatNumber" />
+								<span class="vat-status">@Model.VatNumberStatusNote</span>
+								<span class="vat-note">
+									<em>@T("Account.Fields.VatNumber.Note")</em>
+								</span>
+							</div>
+						}
+					</div>
+				</div>-->
+			}
+			@if (Model.StreetAddressEnabled ||
+  Model.StreetAddress2Enabled ||
+  Model.ZipPostalCodeEnabled ||
+  Model.CityEnabled ||
+  Model.CountyEnabled ||
+  Model.CountryEnabled)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.YourAddress")</strong>
+					</div>
+					<div class="form-fields">
+						@if (Model.StreetAddressEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="StreetAddress" asp-postfix=":"></label>
+								<input asp-for="StreetAddress" />
+								@if (Model.StreetAddressRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="StreetAddress"></span>
+							</div>
+						}
+						@if (Model.StreetAddress2Enabled)
+						{
+							<div class="inputs">
+								<label asp-for="StreetAddress2" asp-postfix=":"></label>
+								<input asp-for="StreetAddress2" />
+								@if (Model.StreetAddress2Required)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="StreetAddress2"></span>
+							</div>
+						}
+						@if (Model.ZipPostalCodeEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="ZipPostalCode" asp-postfix=":"></label>
+								<input asp-for="ZipPostalCode" />
+								@if (Model.ZipPostalCodeRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="ZipPostalCode"></span>
+							</div>
+						}
+						@if (Model.CityEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="City" asp-postfix=":"></label>
+								<input asp-for="City" />
+								@if (Model.CityRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="City"></span>
+							</div>
+						}
+						@if (Model.CountyEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="County" asp-postfix=":"></label>
+								<input asp-for="County" />
+								@if (Model.CountyRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="County"></span>
+							</div>
+						}
+						@if (Model.CountryEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="CountryId" asp-postfix=":"></label>
+								<select asp-for="CountryId" asp-items="Model.AvailableCountries"
+										data-trigger="country-select"
+										data-url="@(Url.RouteUrl("GetStatesByCountryId"))"
+										data-stateprovince="#@Html.IdFor(model => model.StateProvinceId)"
+										data-loading="#states-loading-progress"></select>
+								@if (Model.CountryRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="CountryId"></span>
+							</div>
+						}
+						@if (Model.CountryEnabled && Model.StateProvinceEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="StateProvinceId" asp-postfix=":"></label>
+								<select asp-for="StateProvinceId" asp-items="Model.AvailableStates"></select>
+								@if (Model.StateProvinceRequired)
+								{
+									<nop-required />
+								}
+								<span id="states-loading-progress" style="display: none;" class="please-wait">@T("Common.Wait...")</span>
+								<span asp-validation-for="StateProvinceId"></span>
+							</div>
+						}
+					</div>
+				</div>-->
+			}
+			@if (Model.PhoneEnabled || Model.FaxEnabled)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.YourContactInformation")</strong>
+					</div>
+					<div class="form-fields">
+						@if (Model.PhoneEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="Phone" asp-postfix=":"></label>
+								<input asp-for="Phone" />
+								@if (Model.PhoneRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="Phone"></span>
+							</div>
+						}
+						@if (Model.FaxEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="Fax" asp-postfix=":"></label>
+								<input asp-for="Fax" />
+								@if (Model.FaxRequired)
+								{
+									<nop-required />
+								}
+								<span asp-validation-for="Fax"></span>
+							</div>
+						}
+					</div>
+				</div>-->
+			}
+			@if (Model.NewsletterEnabled || Model.CustomerAttributes.Count > 0)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.Options")</strong>
+					</div>
+					<div class="form-fields">
+						@if (Model.NewsletterEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="Newsletter" asp-postfix=":"></label>
+								<input asp-for="Newsletter" />
+								<span asp-validation-for="Newsletter"></span>
+							</div>
+						}
+						@if (Model.CustomerAttributes.Count > 0)
+						{
+							@await Html.PartialAsync("_CustomerAttributes", Model.CustomerAttributes)
+						}
+					</div>
+				</div>-->
+			}
+			@if (Model.AllowCustomersToSetTimeZone || Model.SignatureEnabled)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.Preferences")</strong>
+					</div>
+					<div class="form-fields">
+						@if (Model.AllowCustomersToSetTimeZone)
+						{
+							<div class="inputs">
+								<label asp-for="TimeZoneId" asp-postfix=":"></label>
+								<select asp-for="TimeZoneId" asp-items="Model.AvailableTimeZones"></select>
+								<span asp-validation-for="TimeZoneId"></span>
+							</div>
+						}
+						@if (Model.SignatureEnabled)
+						{
+							<div class="inputs">
+								<label asp-for="Signature" asp-postfix=":"></label>
+								<textarea asp-for="Signature" class="account-signature-text"></textarea>
+							</div>
+						}
+					</div>
+				</div>-->
+			}
+			@if (Model.NumberOfExternalAuthenticationProviders > 0)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.AssociatedExternalAuth")</strong>
+					</div>
+					@if (Model.AssociatedExternalAuthRecords.Count > 0)
+					{
+						//existing associated external records
+						<div class="table-wrapper">
+							<table class="data-table">
+								<colgroup>
+									<col />
+									<col />
+									<col />
+								</colgroup>
+								<thead>
+									<tr>
+										<th class="auth-method-name">
+											@T("Account.AssociatedExternalAuth.AuthMethodName")
+										</th>
+										<th class="email">
+											@T("Account.AssociatedExternalAuth.Email")
+										</th>
+										<th class="external-id">
+											@T("Account.AssociatedExternalAuth.ExternalIdentifier")
+										</th>
+										@if (Model.AllowCustomersToRemoveAssociations)
+										{
+											<th class="remove">
+												@T("Account.AssociatedExternalAuth.Remove")
+											</th>
+										}
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var item in Model.AssociatedExternalAuthRecords)
+									{
+										<tr>
+											<td class="auth-method-name">
+												@item.AuthMethodName
+											</td>
+											<td class="email">
+												@item.Email
+											</td>
+											<td class="external-id">
+												@CommonHelper.EnsureMaximumLength(item.ExternalIdentifier, 40, "...")
+											</td>
+											@if (Model.AllowCustomersToRemoveAssociations)
+											{
+												<td class="remove">
+													<a href="#" onclick="return removeexternalassociation(@item.Id)">@T("Account.AssociatedExternalAuth.Remove")</a>
+												</td>
+											}
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					}
+					@if (Model.NumberOfExternalAuthenticationProviders > Model.AssociatedExternalAuthRecords.Count)
+					{
+						//we can add more external records
+						var loginUrl = Url.RouteUrl("Login", null, webHelper.CurrentRequestProtocol);
+						<div class="form-fields add-more-external-records">
+							@T("Account.AssociatedExternalAuth.AddMoreRecords")
+							<a href="@loginUrl">@loginUrl</a>
+						</div>
+					}
+				</div>-->
+			}
+
+			@if (Model.GdprConsents.Count > 0)
+			{
+				<!--<div class="fieldset">
+					<div class="title">
+						<strong>@T("Account.UserAgreement")</strong>
+					</div>
+					<div class="form-fields">
+						@foreach (var consent in Model.GdprConsents)
+						{
+							if (consent.IsRequired)
+							{
+								<script asp-location="Footer">
+                                    $(document).ready(function() {
+                                        $('#save-info-button').on('click', function() {
+                                            if ($('#consent@(consent.Id)').is(':checked')) {
+                                                    //do some stuff
+                                                    return true;
+                                                } else {
+                                                    //just show validation errors, don't post
+                                               alert('@Html.Raw(JavaScriptEncoder.Default.Encode(consent.RequiredMessage))');
+                                                    return false;
+                                                }
+                                            });
+                                    });
+								</script>
+							}
+							<div class="inputs accept-consent">
+								<input id="consent@(consent.Id)" type="checkbox" name="consent@(consent.Id)" checked="@consent.Accepted" />
+								<label for="consent@(consent.Id)">@consent.Message</label>
+							</div>
+						}
+					</div>
+				</div>-->
+			}
+			<div class="buttons">
+				<input type="submit" id="save-info-button" value="@T("Common.Save")" name="save-info-button" class="button-1 save-customer-info-button" />
+			</div>
+		</form>
+	</div>
+</div>
+
+<script asp-location="Footer">
+    function removeexternalassociation(itemId) {
+        if (confirm('@T("Common.AreYouSure")')) {
+            var postData = {
+                id: itemId
+            };
+            addAntiForgeryToken(postData);
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@Url.Action("RemoveExternalAssociation", "Customer")",
+                data: postData,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    location.href = data.redirect;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    alert('Failed to delete');
+                }
+            });
+        }
+        return false;
+    }
+
+	function checkDigit(event){ 
+        var  str = document.getElementById(event.id).value;
+        for (var i = 0; i < str.length; i++) {
+            if (isNaN(str.charAt(i))) { //is not number
+                    document.getElementById(event.id).value = "";
+            }
+        }    
+    }
+	function isNumber(evt) {
+		evt = (evt) ? evt : window.event;
+		var charCode = (evt.which) ? evt.which : evt.keyCode;
+		if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+			return false;
+		}
+		return true;
+	}
+</script>

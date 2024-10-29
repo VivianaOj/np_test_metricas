@@ -1,0 +1,30 @@
+﻿@model OrderDetailsModel
+    @{
+        var orderId = Model.Id.ToString();
+
+        //if (Model.TransId != null)
+        //{
+        //    orderId = Model.TransId;
+        //}
+    }
+    <div class="page order-details-page">
+        <div class="page-body checkout-data">
+            <div class="section payment-info">
+                <p class="TitlePayLater">@T("Order.Order")</p>
+                <p class="card-order-text">#@orderId</p>
+
+                <p class="TitlePayLater">@T("Order.NsNum")</p>
+                <p class="card-order-text">@Model.TransId</p>
+
+                <p style="margin-top: 64px;" class="TitlePayLater">@T("Order.Company")</p>
+                <p class="PayLater-info">@Model.company</p>
+
+                <p class="TitlePayLater" style="margin-top: 32px;">@T("Address")</p>
+                <p class="PayLater-info">@Model.ShippingAddress.Address1 @Model.ShippingAddress.City @Model.ShippingAddress.ZipPostalCode @Model.ShippingAddress.County </p>
+
+
+                <p class="TitlePayLater" style="margin-top: 32px;">@T("TotalOrder")</p>
+                <p class="PayLater-total">@Model.OrderTotal</p>
+            </div>
+        </div>
+    </div>

@@ -1,0 +1,74 @@
+﻿.login-title {
+    
+    font-style: normal;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 28px;
+    align-items: center;
+    color: #263238;
+    margin-bottom: 30px;
+    margin-top: -10px;
+}
+
+.field-icon {
+    float: right;
+    margin-left: -25px;
+    margin-top: 15px;
+    position: relative;
+    z-index: 2;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.container {
+    padding-top: 50px;
+    margin: auto;
+}
+
+.input-password {
+    width: 327px !important;
+    height: 38px !important;
+}
+
+.field-icon-password {
+    float: right;
+    margin-left: -30px;
+    margin-top: 15px;
+    position: relative;
+    z-index: 2;
+    font-size: 20px;
+    font-weight: bold;
+    margin-right: 20px;
+}
+
+.center-password-label {
+    margin-left: 100px !important;
+    margin-top: 30px !important;
+}
+
+.input-center {
+    text-align:center !important;
+    display: initial !important;
+}
+
+.input-center-title {
+    text-align: center !important;
+}
+
+.input-display {
+    display: initial !important;
+}
+
+.inputs-container {
+    height: 200px;
+    position: relative;
+}
+
+.inputs-center {
+    margin: 0;
+    position: absolute !important;
+    top: 20%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}

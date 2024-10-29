@@ -1,0 +1,280 @@
+﻿@model LoginModel
+@using Nop.Core
+@using Nop.Core.Domain.Customers
+
+@inject IWebHelper webHelper
+@{
+    Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.Login").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-login-page");
+
+    //register URL with return URL (if specified)
+    var registerUrl = Url.RouteUrl("Register", new { returnUrl = this.Context.Request.Query["returnUrl"] }, webHelper.CurrentRequestProtocol);
+}
+<div class="page-title titlePages title-general-version-mobile" id="loginPage">
+    <h1>@T("Account.Login.Welcome")</h1>
+</div>
+<div class="row justify-content-center loginPageRegister">
+    <div class="col-10 col-sm-11 col-md-11 col-lg-11 text-center wop">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-9 col-lg-6">
+                @await Html.PartialAsync("_ExternalAuthentication.Errors")
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-12 col-lg-12 wop">
+                @if (Model.RegistrationType == UserRegistrationType.Disabled)
+                {
+
+                    <div class="contentCustomInternalTopicPage">
+                        @T("Account.Register.Result.Disabled")
+                    </div>
+                }
+                else if (Model.CheckoutAsGuest)
+                {
+                    <div class="row justify-content-center mt-4 ">
+                        @await Component.InvokeAsync("TopicBlock", new { systemName = "CheckoutAsGuestOrRegister" })
+                    </div>
+                    <div class="buttons">
+                        <input type="button" class="baseButtonRoundedBlue" onclick="location.href='@Url.RouteUrl("Checkout")'" value="@T("Account.Login.CheckoutAsGuest")" />
+                        <input type="button" class="baseButtonRoundedBlue" onclick="location.href='/validateregister'" value="@T("Account.Register")" />
+                    </div>
+                }
+                else
+                {
+                    <div class="row justify-content-center mt-4 d-none">
+                        @T("Account.Login.NewCustomerText")
+                    </div>
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-sm-5 col-lg-3 wop">
+                            <div class="buttons">
+                                <input type="button" class="baseButtonRoundedBlue" style="width:100%" onclick="location.href='/validateregister'" value="@T("Account.Register")" />
+                            </div>
+                        </div>
+                    </div>
+
+                }
+            </div>
+        </div>
+        <div class="row justify-content-center mt-4">
+            <div class="col-12 col-md-12 col-lg-12 wop">
+                <div class="login-titlev2 text-center">
+                    <div asp-validation-summary="ModelOnly" class="message-error LoginError"> </div>
+                    <h1>@T("Account.Login")</h1>
+                    <div class="row justify-content-center mt-4">
+                        <div class="col-12 col-md-8 col-lg-8 wop">
+                            <center>
+                                <form asp-route="Login" asp-route-returnurl="@Context.Request.Query["ReturnUrl"]" method="post" id="frmLogin">
+                                    <div class="form-fields">
+                                        @if (Model.UsernamesEnabled)
+                                        {
+                                            <div class="inputs">
+                                                <label class="label-rememberme" asp-for="Username" asp-postfix=":"></label>
+                                                <input asp-for="Username" class="username inputLogin" autofocus="autofocus" maxlength="40" />
+                                                <span asp-validation-for="Username"></span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="row justify-content-center">
+                                                <div class="col-12 col-md-7 wop">
+
+                                                    <div class="inputs">
+                                                        <label class="label-rememberme w-100">Email:<span class="required">*</span></label>
+                                                        <input asp-for="Email" class="registration-page-form-input" maxlength="100" style="width:100% !important" autofocus="autofocus" onchange="ValidateCompany()" />
+                                                        <span asp-validation-for="Email"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            @*<div class="inputs">
+                                    <label asp-for="Email" asp-postfix=":"></label><span asp-validation-for="Email"></span>
+                                    <nop-required />
+
+                                    <input asp-for="Email" class="email inputLogin" autofocus="autofocus" onchange="ValidateCompany()" maxlength="40" />
+                                </div>*@
+                                        }
+                                        <div class="row justify-content-center">
+                                            <div class="col-12 col-md-7 wop">
+                                                <i class="nn- nn-eye field-icon-login-password password" style="position: absolute;top: 31px;z-index: 100;right: 30px;"></i>
+                                                <div class="inputs">
+                                                    <label class="label-rememberme w-100">Password: <span class="required">*</span></label>
+                                                    <input type="password" id="password" asp-for="Password" class="password2 inputLogin w-100" style="width: 100% !important;" maxlength="50" required onchange="ValidateCompany()" />                                                    
+                                                    <span asp-validation-for="Password"></span>
+                                                </div>
+
+                                                @*<div class="inputs">
+            <i class="nn- nn-eye field-icon-login-password password"></i>
+            <label asp-for="Password" asp-postfix=":"></label>
+            <input id="password" asp-for="Password" class="password inputLogin" maxlength="10" required />
+            <span asp-validation-for="Password"></span>
+        </div>*@
+
+                                                <div class="row zone-rememberme-mobile">
+                                                    <div class="col-7 col-lg-7 wop">
+                                                        <div class="form-inline">
+                                                            <div class="row">
+                                                                <div class="col-2 col-lg-2 wop">
+                                                                    <input asp-for="RememberMe" class="remember-zone-desktop"/>
+                                                                    <label class="container remember-zone-mobile" id="c3">
+                                                                        <input type="checkbox" data-val="true" data-val-required="The Remember me? field is required." id="RememberMe" name="RememberMe" value="true">
+                                                                        <span class="checkmark"></span>
+                                                                    </label>
+                                                                </div>
+                                                                <div class="col-10 col-lg-9 col-xl-10 wop">
+                                                                    <label class="label-rememberme" asp-for="RememberMe"></label>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-5 col-lg-5 d-flex justify-content-end wop">
+                                                        @*<div class="inputs reversed">*@
+                                                        <span class="forgot-password text-right">
+                                                            <a asp-route="PasswordRecovery">@T("Account.Login.ForgotPassword")</a>
+                                                        </span>
+                                                        @*</div>*@
+                                                    </div>
+                                                </div>
+
+                                                <div class="row mt-3 d-none" id="CompanyInfo">
+                                                    <div class="wop col-12 col-12 text-center">
+                                                        <label class="label-rememberme" asp-for="Company" asp-postfix=":"></label>
+                                                    </div>
+                                                    <div class="wop col-12 col-12 text-center">
+                                                        <select asp-for="Company" class="inputLoginSelect w-100"
+                                                                data-company="#@Html.IdFor(model => model.Company)">
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                @*@if (Model.DisplayCaptcha)
+                                                {
+                                                    <script>
+                                                        window.onload = function () {
+                                                        var iframes = document.getElementsByTagName('iframe');
+                                                    
+                                                            for (var i = 0; i < iframes.length; i++) {
+
+                                                                if (screen.width > 1600) {
+                                                                    iframes[i].width = 310;
+                                                                    iframes[i].height = 100;
+                                                                } else {
+                                                                    if (screen.width > 1366 && screen.width<1600) {
+                                                                        iframes[i].width = 380;
+                                                                        iframes[i].height = 100;
+                                                                    } else {
+                                                                        iframes[i].width = 310;
+                                                                        iframes[i].height = 100;
+                                                                    }
+                                                                   
+                                                                }
+                                                            
+                                                            }
+                                                        };
+
+
+                                                    </script>
+
+                                                   
+                                                    <br />
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <div class="captcha-box">
+                                                                <nop-captcha />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <style>
+
+                                                        .rc-anchor-pt {
+                                                            position: initial !important;
+                                                            text-align: center !important;
+                                                            width: 100px !important;
+                                                        }
+                                                    </style>
+
+
+                                                }*@
+
+
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </form>
+                            </center>
+                        </div>
+                    </div>
+                    <div class="row justify-content-center mt-5 btn-login-mobile">
+                        <div class="col-12 col-sm-5 col-lg-3 wop">
+                            <input class="baseButtonRoundedBlue btn-login-mobile" style="width:100%" type="button" onclick="$('#frmLogin').submit();" value="@T("Account.Login.LoginButton")" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    if ($("#Email").val().length>=0) {
+        ValidateCompany();
+       // addAntiForgeryToken(postData);
+    }
+
+    function ValidateCompany() {
+        var postData = {
+            username: $("#Email").val()
+        };
+
+
+        if ($("#Email").val().length > 0 && $("#password").val().length > 0) {
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@Url.RouteUrl("CheckUserCompanyAvailability")",
+                data: postData,
+                dataType: "json",
+                success: function (data, textStatus, jqXHR) {
+                    $('#Company').html('');
+                    if (data.length > 0) {
+                        var options = '';
+                        for (var i = 0; i < data.length; i++) {
+
+                            options += '<option  value="' + data[i].CompanyId + '">' + data[i].CompanyName + '</option>';
+                        }
+                        $('#Company').html(options);
+                        $("#CompanyInfo").css("display", "block !important");
+                        $("#CompanyInfo ").removeClass("d-none");
+
+                    } else {
+                        $('#Company').html("");
+                        $("#CompanyInfo").css("display", "none");
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //$('#availability-check-progress').hide();
+                }
+                //,
+                //complete: function (jqXHR, textStatus) {
+                //    // $('#check-availability-button').prop('disabled', false);
+                //}
+            });
+        }
+    }
+
+    $(".password").click(function () {
+        //$(this).toggleClass("fa-eye fa-eye-slash");
+        var input = $("#password");
+        if (input.attr("type") == "password") {
+            input.attr("type", "text");
+        } else {
+            input.attr("type", "password");
+        }
+    });
+</script>

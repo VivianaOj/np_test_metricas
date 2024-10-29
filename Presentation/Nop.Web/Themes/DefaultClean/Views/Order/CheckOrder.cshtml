@@ -1,0 +1,148 @@
+@model CustomerOrderListModel
+@{ Layout = "_ColumnsOne";
+
+    //title
+    Html.AddTitleParts(T("PageTitle.AccountMyOrders").Text);
+    //page class
+    Html.AppendPageCssClassParts("html-login-page");
+
+}
+<div class="row d-flex justify-content-center colorGeneralBackgroundGray pb-3">
+    <div class="col-sm-11 col-md-11 col-lg-11">
+        <div class="row mt-5">
+            <div class="col-lg-12">
+                <h1>@T("account.customerorderCheck")</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@using (Html.BeginForm("check", "order", FormMethod.Post, new { id = "customerOrderForm", name = "customerOrderForm", onsubmit = "return validateForm()" }))
+{
+    <div class="page account-page order-list-page" style=" max-width: 980px;  margin: auto;">
+        <br />
+        <br />
+        <div class="infocheckOrder" style="text-align: left;">
+            @T("account.MessageHelpCheckOrder")
+            <br />
+            <br />
+            <span style="text-align: left;" class="field-validation-error" data-valmsg-for="Email" data-valmsg-replace="true">
+                <span id="Email-error" class="">
+                    @if (Model.WarningMessages == "OrdenNoFound")
+                    {
+                        <strong> @T("CheckOrder.nofound")</strong>
+                    }
+                </span>
+            </span>
+        </div>
+
+        @if (Model.IsGuest)
+        {
+            <div class="Info-Order">
+                <p class="checkOrder"><br />@T("order.Email"): <span class="required">*</span></p>
+                <input  id="CustomerEmail" name="CustomerEmail" class="registration-page-form-input" maxlength="100" />
+                <span style="text-align: left;" class="field-validation-error displayNone" id="EmailOrderReq" data-valmsg-for="Email" data-valmsg-replace="true">
+                    <span id="Email-error" class="">@T("CheckOrder.Emailisrequiered").</span>
+                </span>
+                <span style="text-align: left;" class="field-validation-error displayNone" id="InvalidEmail" data-valmsg-for="Email" data-valmsg-replace="true">
+                    <span id="Email-error" class="">@T("CheckOrder.InvalidEmail").</span>
+                </span>
+                <p class="checkOrder"><br />@T("order.OrderNumber"):<span class="required">*</span></p>
+                <input  id="order" name="order" class="registration-page-form-input" type="text" maxlength="20" />
+                <span style="text-align: left;" class="field-validation-error displayNone" id="OrderReq" data-valmsg-for="order" data-valmsg-replace="true">
+                    <span id="order-error" class=""> @T("CheckOrder.orderrequired").</span>
+                </span>
+                <br />
+                <br />
+                <div class=""><input class="button-1 login-button" type="submit" value="@T("CheckOrder.LookUp")"></div>
+            </div>
+
+        }
+
+    </div>
+}
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("form").keypress(function (e) {
+            if (e.which == 13) {
+                return false;
+            }
+        });
+    });
+
+    function validateForm() {
+        var error = 0;
+        $("#Email-error").html("");
+
+        if ($("#CustomerEmail").val() == "") {
+            error++;
+            $("#EmailOrderReq").removeClass("displayNone");
+        } else {
+            var expr = /^(([^<>()[\]\.,;:\s@@\"]+(\.[^<>()[\]\.,;:\s@@\"]+)*)|(\".+\"))@@(([^<>()[\]\.,;:\s@@\"]+\.)+[^<>()[\]\.,;:\s@@\"]{2,})$/i
+
+            if (expr.test($("#CustomerEmail").val())) {
+                $("#InvalidEmail").addClass("displayNone");
+                $("#EmailOrderReq").addClass("displayNone");
+                
+            } else {
+                $("#InvalidEmail").removeClass("displayNone");
+                error++;
+            }
+
+
+            ////if (!expr.test($("#EmailOrderReq").val())) {                                                            //COMPRUEBA MAIL
+            ////    error++;
+            ////    $("#EmailOrderReq").removeClass("displayNone");
+            ////} else {
+            //$("#EmailOrderReq").addClass("displayNone");
+            ////  }
+        }
+
+        if ($("#order").val() == "") {
+            error++;
+            $("#OrderReq").removeClass("displayNone");
+        } else {
+
+            $("#OrderReq").addClass("displayNone");
+        }
+     
+        if (error == 0) {
+            form1.submit();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+    function validateFields() {
+
+        if ($("#CustomerEmail").val() == "") {
+            $("#EmailOrderReq").removeClass("displayNone");
+        } else {
+            var expr = /^(([^<>()[\]\.,;:\s@@\"]+(\.[^<>()[\]\.,;:\s@@\"]+)*)|(\".+\"))@@(([^<>()[\]\.,;:\s@@\"]+\.)+[^<>()[\]\.,;:\s@@\"]{2,})$/i
+
+            if (expr.test($("#CustomerEmail").val())) {
+                $("#InvalidEmail").addClass("displayNone"); $("#EmailOrderReq").addClass("displayNone");
+
+            } else {
+                $("#InvalidEmail").removeClass("displayNone");
+            }
+
+        }
+
+        if ($("#order").val() == "") {
+            $("#OrderReq").removeClass("displayNone");
+        } else {
+
+            $("#OrderReq").addClass("displayNone");
+        }
+
+    }
+
+
+</script>
