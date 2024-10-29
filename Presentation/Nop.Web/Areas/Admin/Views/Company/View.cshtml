@@ -1,0 +1,24 @@
+﻿@model CompanyModel
+
+@inject AdminAreaSettings adminAreaSettings
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Companies.Companies.ViewCompanyDetails").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Companies list");
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Companies.Companies.EditCustomerDetails") - @Model.CompanyName
+        <small>
+            <i class="fa fa-arrow-circle-left"></i>
+            <a asp-action="List">@T("Admin.Companies.Companies.BackToList")</a>
+        </small>
+    </h1>
+    <div class="pull-right">
+
+    </div>
+</div>
+@await Html.PartialAsync("_CreateOrUpdate", Model)

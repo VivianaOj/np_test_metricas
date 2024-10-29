@@ -1,0 +1,49 @@
+﻿@using Nop.Services.Stores
+@model CompanyModel
+@inject IStoreService storeService
+<div class="panel-body">
+    @await Html.PartialAsync("Table", new DataTablesModel
+{
+    Name = "customer-grid",
+    UrlRead = new DataUrl("CustomerList", "Company", new RouteValueDictionary { [nameof(Model.CompanyCustomerSearchModel.CompanyId)] = Model.Id }),
+    Length = Model.CompanyCustomerSearchModel.PageSize,
+    LengthMenu = Model.CompanyCustomerSearchModel.AvailablePageSizes,
+    ColumnCollection = new List<ColumnProperty>
+        {
+
+            new ColumnProperty(nameof(CompanyCustomerModel.NetsuitId))
+            {
+                Title = T("Admin.Address.Fields.NetsuitId").Text
+            },
+           
+             new ColumnProperty(nameof(CompanyCustomerModel.Email))
+            {
+                Title = T("Admin.Address.Fields.Email").Text
+            },
+              new ColumnProperty(nameof(CompanyCustomerModel.Active))
+            {
+                Title = T("Admin.Address.Fields.Active").Text
+            },
+            new ColumnProperty(nameof(CompanyCustomerModel.Id))
+            {
+                Title = T("Admin.Common.View").Text,
+                Width = "100",
+                ClassName = NopColumnClassDefaults.Button,
+                Render = new RenderButtonEdit(new DataUrl("~/Admin/Customer/Edit/"))
+            }
+
+        }
+})
+    <script>
+        function renderColumnOrderStatus(data, type, row, meta) {
+            var color;
+            switch (row.OrderStatusId) {
+            case 10: color = 'yellow'; break;
+            case 20: color = 'blue'; break;
+            case 30: color = 'green'; break;
+            case 40: color = 'red'; break;
+            }
+            return '<span class="grid-report-item ' + color + '">' + data + '</span >';
+        }
+    </script>
+</div>

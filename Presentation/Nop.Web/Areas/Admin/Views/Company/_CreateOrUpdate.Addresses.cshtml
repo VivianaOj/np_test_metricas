@@ -1,0 +1,45 @@
+﻿@model CompanyModel
+
+<div class="panel-body">
+    @await Html.PartialAsync("Table", new DataTablesModel
+{
+    Name = "customer-addresses-grid",
+    UrlRead = new DataUrl("AddressesSelect", "Company", new RouteValueDictionary { [nameof(Model.CompanyAddressSearchModel.CompanyId)] = Model.CompanyAddressSearchModel.CompanyId }),
+    Length = Model.CompanyAddressSearchModel.PageSize,
+    LengthMenu = Model.CompanyAddressSearchModel.AvailablePageSizes,
+    ColumnCollection = new List<ColumnProperty>
+        {
+            new ColumnProperty(nameof(AddressModel.PhoneNumber))
+            {
+                Title = T("Admin.Address.Fields.PhoneNumber").Text
+            },
+            //new ColumnProperty(nameof(AddressModel.FaxNumber))
+            //{
+            //    Title = T("Admin.Address.Fields.FaxNumber").Text
+            //},
+            new ColumnProperty(nameof(AddressModel.AddressHtml))
+            {
+                Title = T("Admin.Address").Text,
+                Encode = false
+            },
+             new ColumnProperty(nameof(AddressModel.IsShipping))
+            {
+                Title = T("Admin.Address.Fields.IsShipping").Text
+            },
+              new ColumnProperty(nameof(AddressModel.IsBilling))
+            {
+                Title = T("Admin.Address.Fields.IsBilling").Text
+            },
+            new ColumnProperty(nameof(AddressModel.ApprovedNNDelivery))
+            {
+                Title = T("account.fields.ApprovedNNDelivery").Text
+            }
+        }
+})
+</div>
+
+
+
+<div class="panel-body">
+
+</div>

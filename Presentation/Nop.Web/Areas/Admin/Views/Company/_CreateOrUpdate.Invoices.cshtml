@@ -1,0 +1,56 @@
+﻿@model CompanyModel
+
+<div class="panel-body">
+@await Html.PartialAsync("Table", new DataTablesModel
+{
+    Name = "Invoices-grid",
+    UrlRead = new DataUrl("InvoicesSelect", "Company", new RouteValueDictionary { [nameof(Model.CompanyInvoicesSearchModel.CompanyId)] = Model.CompanyInvoicesSearchModel.CompanyId }),
+    Length = Model.CompanyInvoicesSearchModel.PageSize,
+    LengthMenu = Model.CompanyInvoicesSearchModel.AvailablePageSizes,
+    ColumnCollection = new List<ColumnProperty>
+        {
+            new ColumnProperty(nameof(InvoicesModel.InvoiceNo))
+            {
+                Title = T("Admin.Address.Fields.InvoiceNumber").Text
+            },
+            new ColumnProperty(nameof(InvoicesModel.SaleOrderId))
+            {
+                Title = T("Admin.Address.Fields.SaleOrderId").Text
+            },
+            new ColumnProperty(nameof(InvoicesModel.Total))
+            {
+                Title = T("Admin.Address.Fields.TotalInvoice").Text
+            },
+             new ColumnProperty(nameof(InvoicesModel.AmountDue))
+            {
+                Title = T("Admin.Address.Fields.AmountDue").Text
+            },
+
+              new ColumnProperty(nameof(InvoicesModel.StatusName))
+            {
+                Title = T("Admin.Address.Fields.StatusName").Text
+            },
+        }
+})
+</div>
+<div class="panel-body">
+
+</div>
+
+<script>
+    function table_deletedata_Invoices_grid(id) {
+        if (confirm("Are you sure delete the invoice?")) {
+            $.ajax({
+                url: "/Admin/Company/Delete",
+                type: "POST",
+                data: { id: id },
+                success: function (result) {
+                    // Handle success
+                },
+                error: function (xhr, status, error) {
+                    // Handle error
+                }
+            });
+        }
+    }
+</script>

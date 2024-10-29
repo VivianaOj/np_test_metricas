@@ -1,0 +1,31 @@
+﻿{
+  "InstalledPluginNames": [
+    "SevenSpikes.Core",
+    "SevenSpikes.Nop.Plugins.AjaxCart",
+    "SevenSpikes.Nop.Plugins.AnywhereSliders",
+    "SevenSpikes.Nop.Plugins.CloudZoom",
+    "SevenSpikes.Nop.Plugins.InstantSearch",
+    "SevenSpikes.Nop.Plugins.JCarousel",
+    "SevenSpikes.Nop.Plugins.MegaMenu",
+    "SevenSpikes.Nop.Plugins.NopQuickTabs",
+    "SevenSpikes.Nop.Plugins.PrevNextProduct",
+    "SevenSpikes.Nop.Plugins.ProductRibbons",
+    "SevenSpikes.Nop.Plugins.QuickView",
+    "Shipping.UPS",
+    "Pickup.PickupInStore",
+    "Payments.CheckMoneyOrder",
+    "Tax.FixedOrByCountryStateZip",
+    "Misc.NetSuiteConnector",
+    "Misc.CreditCardVaultAuthorizeNet",
+    "Tax.TaxJar",
+    "Shipping.NNDelivery",
+    "Payments.AuthorizeNet",
+    "Shipping.ShipStation",
+    "Misc.NNBoxGenerator"
+  ],
+  "PluginNamesToUninstall": [],
+  "PluginNamesToDelete": [],
+  "PluginNamesToInstall": [
+    
+  ]
+}

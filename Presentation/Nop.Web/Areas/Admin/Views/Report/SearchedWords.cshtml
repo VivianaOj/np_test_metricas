@@ -1,0 +1,111 @@
+﻿@model SearchedWordSearchModel
+@using Nop.Web.Framework.Models.DataTables
+@using Nop.Web.Areas.Admin.Factories
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Reports.Sales.SearchedWords").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("SearchedWords");
+
+    const string hideSearchBlockAttributeName = "BestsellersPage.HideSearchBlock";
+    var hideSearchBlock = genericAttributeService.GetAttribute<bool>(workContext.CurrentCustomer, hideSearchBlockAttributeName);
+
+}
+<nop-antiforgery-token />
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Reports.Sales.SearchedWords")
+    </h1>
+    <div class="pull-right">
+        &nbsp;
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row @(!hideSearchBlock ? "opened" : "")" data-hideAttribute="@hideSearchBlockAttributeName">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="search-body @(hideSearchBlock ? "closed" : "")">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="StartDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="StartDate" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="EndDate" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="EndDate" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-5">
+                                <button type="button" id="search-salesreport" class="btn btn-primary btn-search">
+                                    <i class="fa fa-line-chart"></i>
+                                    @T("Admin.Reports.Sales.Bestsellers.RunReport")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @await Html.PartialAsync("Table", new DataTablesModel
+               {
+                   Name = "salesreport-grid",
+                   UrlRead = new DataUrl("SearchedWordsList", "Report", null),
+                   SearchButtonId = "search-salesreport",
+                   Length = Model.PageSize,
+                   LengthMenu = Model.AvailablePageSizes,
+                   Filters = new List<FilterParameter>
+                        {
+                            new FilterParameter(nameof(Model.StartDate)),
+                            new FilterParameter(nameof(Model.EndDate)),
+
+                        },
+                        ColumnCollection = new List<ColumnProperty>
+                        {
+                           new ColumnProperty(nameof(SearchedWordModel.Word))
+                            {
+                                Title = T("Admin.Reports.Sales.SearchedWords.Fields.Word").Text,
+                               /// Render = new CustomRender(new DataUrlLInk("/search?q=", nameof(SearchedWordModel.Word), true))
+
+
+
+
+                              //  Render = new CustomRender("search"+nameof(SearchedWordModel.Word)).Url
+                                Render = new RenderLink(new DataUrl("/search?adv=true&cid=0&mid=0&vid=0&sid=true&isc=true&orderBy=0&q=", nameof(SearchedWordModel.Word)))
+
+                            },
+                            new ColumnProperty(nameof(SearchedWordModel.Count))
+                            {
+                                Title = T("Admin.Reports.Sales.SearchedWords.Fields.Count").Text
+                            }
+                        }
+               })
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

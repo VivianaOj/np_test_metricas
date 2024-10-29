@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+  <ProjectName>Nop.Services</ProjectName>
+  <ProjectLanguage>C#</ProjectLanguage>
+  <ProjectType>Product</ProjectType>
+  <ProjectGuid>e38d3b91-528b-4077-be04-67799bb667a3</ProjectGuid>
+  <FullPath>C:\Users\leosorio\source\repos\Release\FeatureParentChildPartialPayment\Libraries\Nop.Services\Nop.Services.csproj</FullPath>
+  <IsExcluded>false</IsExcluded>
+  <AnalysisResults>
+    <AnalysisResult Id="FilesToAnalyze" Location="C:\Users\leosorio\source\repos\Release\FeatureParentChildPartialPayment\Presentation\Nop.Web\.sonarqube\conf\2\FilesToAnalyze.txt" />
+  </AnalysisResults>
+  <AnalysisSettings>
+    <Property Name="sonar.cs.roslyn.reportFilePaths">C:\Users\leosorio\source\repos\Release\FeatureParentChildPartialPayment\Libraries\Nop.Services\bin\Debug\netcoreapp2.2\Nop.Services.dll.RoslynCA.json|C:\Users\leosorio\source\repos\Release\FeatureParentChildPartialPayment\Libraries\Nop.Services\bin\Debug\netcoreapp2.2\Nop.Services.dll.RoslynCA.json</Property>
+    <Property Name="sonar.cs.analyzer.projectOutPaths">C:\Users\leosorio\source\repos\Release\FeatureParentChildPartialPayment\Presentation\Nop.Web\.sonarqube\out\2</Property>
+  </AnalysisSettings>
+  <Configuration>Debug</Configuration>
+  <Platform>AnyCPU</Platform>
+  <TargetFramework>netcoreapp2.2</TargetFramework>
+</ProjectInfo>

@@ -1,0 +1,112 @@
+﻿@model CompanySearchModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Companies.Companies").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Companies list");
+}
+
+<div class="content-header clearfix">
+    <h1 class="pull-left">
+        @T("Admin.Companies.Companies")
+    </h1>
+    <div class="pull-right">
+
+    </div>
+</div>
+
+<div class="content">
+    <div class="form-horizontal">
+        <div class="panel-group">
+            <div class="panel panel-default panel-search">
+                <div class="panel-body">
+                    <div class="row search-row opened">
+                        <div class="search-text">@T("Admin.Common.Search")</div>
+                        <div class="icon-search"><i class="fa fa-search" aria-hidden="true"></i></div>
+                        <div class="icon-collapse"><i class="fa fa-angle-down" aria-hidden="true"></i></div>
+                    </div>
+                    <div class="search-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CompanyName" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="CompanyName" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="CompanyEmail" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="CompanyEmail" />
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <nop-label asp-for="NetSuiteId" />
+                                    </div>
+                                    <div class="col-md-8">
+                                        <nop-editor asp-for="NetSuiteId" />
+                                    </div>
+                                </div>                                
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 col-md-offset-2">
+                                <button type="button" id="search-companies" class="btn btn-primary btn-search">
+                                    <i class="fa fa-search"></i>
+                                    @T("Admin.Common.Search")
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    @{
+                        var gridModel = new DataTablesModel
+                        {
+                            Name = "companies-grid",
+                            UrlRead = new DataUrl("CompanyList", "Company", null),
+                            SearchButtonId = "search-companies",
+                            Length = Model.PageSize,
+                            LengthMenu = Model.AvailablePageSizes,
+                            Filters = new List<FilterParameter>
+                                                        {
+                                                new FilterParameter(nameof(Model.CompanyName)),
+                                                new FilterParameter(nameof(Model.NetSuiteId)),
+                                                new FilterParameter(nameof(Model.CompanyEmail)),
+                                            }
+                        };
+
+                        gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CompanyModel.NetsuiteId))
+                        {
+                            Title = T("Admin.Customers.Company.Fields.NetsuiteId").Text,
+                            Width = "50"
+                        });
+                        gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CompanyModel.CompanyName))
+                        {
+                            Title = T("Admin.Customers.Company.Fields.CompanyName").Text,
+                            Width = "200"
+                        });
+                       
+                        gridModel.ColumnCollection.Add(new ColumnProperty(nameof(CompanyModel.Id))
+                        {
+                            Title = T("Admin.Common.View").Text,
+                            Width = "100",
+                            ClassName = NopColumnClassDefaults.Button,
+                            Render = new RenderButtonView(new DataUrl("View"))
+                        });
+                    }
+                    @await Html.PartialAsync("Table", gridModel)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

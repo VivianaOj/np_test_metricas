@@ -1,0 +1,379 @@
+@model WarehouseLocationNNSearchModel
+
+@{
+    //page title
+    ViewBag.Title = T("Admin.Configuration.Shipping.Warehouses.LocationNN").Text;
+    //active menu item (system name)
+    Html.SetActiveMenuItemSystemName("Warehouses");
+    var adminAreaSettings = EngineContext.Current.Resolve<AdminAreaSettings>();
+}
+
+<form asp-controller="Shipping" asp-action="CreateWarehouse" method="post">
+    <div class="content-header clearfix">
+        <h1 class="pull-left">
+            @T("Admin.Configuration.Shipping.Warehouses.LocationNN")
+
+        </h1>
+        @*<div class="pull-right">
+                <button type="submit" name="save" class="btn bg-blue">
+                    <i class="fa fa-floppy-o"></i>
+                    @T("Admin.Common.Save")
+                </button>
+                <button type="submit" name="save-continue" class="btn bg-blue">
+                    <i class="fa fa-floppy-o"></i>
+                    @T("Admin.Common.SaveContinue")
+                </button>
+                @await Component.InvokeAsync("AdminWidget", new { widgetZone = AdminWidgetZones.WarehouseDetailsButtons })
+            </div>*@
+    </div>
+
+    <div class="panel-group">
+        <div class="panel panel-default">
+            @*<div class="panel-heading">
+                @T("Nop.Plugin.Shipping.StateName")
+            </div>*@
+            <div class="panel-body">
+                <!--<div class="sub-panel panel-search">
+                    <div class="panel-body">
+                        <div class="row">
+                            <!--<div class="col-md-6">-->
+                                <!--<div class="form-group">
+                                        <div class="col-md-3">
+                                            <nop-label asp-for="DeliveryRoutesSearchModel.Name" />
+                                        </div>
+                                        <div class="col-md-9">
+                                            <input class="form-control text-box single-line" id="Name" name="Name" type="text">
+                                        </div>
+                                    </div>-->
+                                <!--<!--<div class="form-group">
+                                    <div class="col-md-3">-->
+                                        <!--<nop-label asp-for="DeliveryRoutesSearchModel.Location" />-->
+                                    <!--</div>
+                                    <div class="col-md-9">
+                                        <input class="form-control text-box single-line" id="Location" name="Location" type="text">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-9 col-md-offset-3">
+                                        <button type="button" id="search-deliveryroutes" class="btn btn-primary btn-search">
+                                            <i class="fa fa-search"></i>
+                                            @T("Admin.Common.Search")
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <!--</div>
+                    </div>
+                </div>-->
+
+
+           @await Html.PartialAsync("Table", new DataTablesModel
+           {
+               Name = "WarehouseLocationNN-grid",
+               UrlRead = new DataUrl("WarehousesLocationNN", "Shipping", null),
+               //UrlDelete = new DataUrl("Delete", "WarehousesLocationNN", null),
+               UrlUpdate = new DataUrl("Edit", "WarehousesLocationNN", null),
+               // SearchButtonId = "search-WarehousesLocationNN",
+               Length = adminAreaSettings.DefaultGridPageSize,
+               LengthMenu = adminAreaSettings.GridPageSizes,
+               Filters = new List<FilterParameter>
+                     {
+                         new FilterParameter(nameof(WarehouseLocationNNModel.Name)),
+                         new FilterParameter(nameof(WarehouseLocationNNModel.Location))
+                     },
+               ColumnCollection = new List<ColumnProperty>
+                     {
+                             new ColumnProperty(nameof(WarehouseLocationNNModel.Name))
+                             {
+                                 Title = T("Nop.Plugin.Shipping.NNDelivery.Fields.StateName").Text,
+                                 Editable = false,
+                                 EditType = EditType.String,
+                                 Render = new RenderCustom("EditWarehouse")
+                             },
+
+                            new ColumnProperty(nameof(WarehouseLocationNNModel.Location))
+                            {
+                                Title = T("Nop.Plugin.Shipping.NNDelivery.Fields.WareHouse").Text,
+                                Editable = false,
+                                EditType = EditType.String,
+                                ClassName = "warehouse-location-column" ,
+                                Render = new RenderCustom("renderProductAttributeMappingValuesColumnEdit")
+                             },
+                               //new ColumnProperty(nameof(WarehouseLocationNNModel.Id))
+                               //{
+                               //    Title = T("Admin.Common.Edit").Text,
+                               //    Width = "100",
+                               //    ClassName = NopColumnClassDefaults.Button,
+                               //    Render = new RenderButtonEdit()
+
+                               //},
+                             
+                            //new ColumnProperty(nameof(WarehouseLocationNNModel.Location))
+                            //{
+                            //    Title = T("Nop.Plugin.Shipping.NNDelivery.Fields.WareHouse").Text,
+                            //    Editable = true,
+                            //    EditType = EditType.String,
+                            //    ClassName = "warehouse-location-columnList" ,
+                            //    Render = new RenderCustom("renderProductAttributeMappingValuesColumnEdit")
+                            // }
+                            // ,
+                           new ColumnProperty(nameof(WarehouseLocationNNModel.Id))
+                           {
+                               Title = T("Admin.Common.Edit").Text,
+                               Width = "100",
+                               ClassName = "warehouse-location-columnSave" ,
+                               Render = new RenderCustom("EditWarehouseButton")
+
+                           },
+                           // new ColumnProperty(nameof(WarehouseLocationNNModel.Id))
+                           //{
+                           //    Title = T("Admin.Common.Edit").Text,
+                           //    Width = "100",
+                           //    ClassName = NopColumnClassDefaults.Button,
+                           //    Render =  new RenderCustom("ShowEditList")
+
+                           //},
+                       }
+                })
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<form action="/Admin/Common/ClearCache" method="post" style="display:none">
+    <input name="__RequestVerificationToken" type="hidden" value="your_token_here">
+    <!-- Other form fields -->
+    <button type="submit">Clear Cache</button>
+</form>
+
+<style>
+    .dropdown-container, .buttonSave {
+        display: none;
+    }
+</style>
+
+
+<script>
+
+    $(document).ready(function () {
+        // Fetch the list of warehouses and populate the warehouse list
+        $.ajax({
+            url: '@Url.Action("SearchWarehouses", "shipping")',
+            success: function (data) {
+                var $list = $('#warehouse-list');
+                $list.empty();
+
+                // Display results
+                $.each(data, function (index, warehouse) {
+                    $list.append('<li>' + warehouse.Location + '</li>');
+                });
+
+                // Update the dropdown options after fetching the data
+                populateDropdownOptions(data);
+            }
+        });
+    });
+
+    function populateDropdownOptions(warehouses) {
+            // Create the HTML for the dropdown list
+        var dropdownHtml = '<select class="form-control">';
+
+        // Add an option for each warehouse
+        warehouses.forEach(function (warehouse) {
+            dropdownHtml += '<option value="' + warehouse.Id + '">' + warehouse.Name + '</option>';
+        });
+
+        dropdownHtml += '</select>';
+
+        // Update the relevant column with the new dropdown
+        $('.dropdown-container').html(dropdownHtml);
+    }
+
+    function SaveWarehouse(selectElement) {
+
+        // Get the select element inside the dropdown container
+        var $select = $("#" + selectElement + " select");
+
+        // Get the selected value
+        var selectedValue = $select.val();
+
+        // Get the selected option element
+        var selectedOption = $select.find('option:selected');
+
+        // Get the text of the selected option
+        var selectedText = selectedOption.text();
+
+        // Prepare data to send
+        var postData = {
+            warehouseId: selectedValue,
+            StateProvidenceId: selectElement
+        };
+
+
+        addAntiForgeryToken(postData);
+
+        $.ajax({
+            cache: false,
+            type: "POST",
+            url: "@Url.Action("SaveSelectedWarehouse", "shipping")",
+            data: postData,
+            dataType: "json",
+            success: function (data, textStatus, jqXHR) {
+
+                var buttonSave = document.getElementById("buttonSave_" + selectElement);
+                var buttonEdit = document.getElementById("buttonEdit_" + selectElement);
+                var dropdownContainer = document.getElementById(selectElement);
+
+                if (dropdownContainer) {
+                    // Set the display property to 'block'
+                    dropdownContainer.style.display = 'none';
+                }
+
+                if (buttonSave) {
+                    // Set the display property to 'block'
+                    buttonSave.style.display = 'none ';
+                    buttonEdit.style.display = 'block';
+                }
+                var NameWarehouse = document.getElementById('NameWarehouse_' + selectElement);
+
+
+                if (NameWarehouse) {
+                    // Set the display property to 'block'
+                    NameWarehouse.innerText = selectedText ;
+                }
+                clearCache();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('Failed to update');
+            }
+        });
+
+    }
+
+    // Example function to clear cache
+    // Function to clear cache
+    function clearCache() {
+        $.ajax({
+            url: '/Admin/Common/ClearCache',
+            method: 'POST',
+            data: {
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function () {
+                // Optional: Redirect or notify user
+                window.location.href = '/Admin/Shipping/WarehousesLocationNN';
+            },
+            error: function () {
+                alert('Failed to clear cache');
+            }
+        });
+    }
+
+    function renderProductAttributeMappingValuesColumnEdit(data, type, row, meta) {
+        var uniqueId = row.Id;
+        var nameValue = row.Name;
+
+        return "<div class='textWarehouse' id='NameWarehouse_"+ row.Id +"' style='float: left;'>" + data + "</div>" + ' <div id=' + row.Id + ' style="margin-left: 20%;margin-top: -1%;" class="dropdown-container"></div>';
+    }
+
+    function EditWarehouse(data, type, row, meta) {
+
+
+        var uniqueId = row.Id;
+        var nameValue = row.Name;
+
+        return '<input type="hidden" id="warehouse-location-' + uniqueId + '" name="warehouse-location-' + uniqueId + '" value="' + uniqueId + '" class="form-control" /><div class="" style="color: black;  font-size: 100% !important; font-weight: 300  !important;">' + nameValue+'</div>';
+
+    }
+    function EditWarehouseButton(data, type, row, meta) {
+           // Fetch the list of warehouses and populate the warehouse list
+
+        var uniqueId = row.Id;
+        return ' <a class="btn btn-default buttonEdit" id="buttonEdit_' + uniqueId +'" onclick="ShowEditButton(' + uniqueId + ')"><i class="fa fa-pencil"></i>Edit</a> <a class="btn btn-default buttonSave" id="buttonSave_' + uniqueId +'" onclick="SaveWarehouse(' + uniqueId+')" ><i class="fa fa-pencil"></i>Save</a>';
+    }
+
+
+    function ShowEditButton(Id) {
+
+        // Get elements by their classes
+        var dropdownContainer = document.getElementById(Id);
+
+        var buttonSave = document.getElementById("buttonSave_"+Id);
+        var buttonEdit = document.getElementById("buttonEdit_" + Id);
+
+
+        if (dropdownContainer) {
+            // Set the display property to 'block'
+            dropdownContainer.style.display = 'block';
+        }
+
+        if (buttonSave) {
+            // Set the display property to 'block'
+            buttonSave.style.display = 'block';
+            buttonEdit.style.display = 'none';
+        }
+
+          $.ajax({
+            url: '@Url.Action("SearchWarehouses", "shipping")',
+            success: function (data) {
+                var $list = $('#warehouse-list');
+                $list.empty();
+
+                // Display results
+                $.each(data, function (index, warehouse) {
+                    $list.append('<li>' + warehouse.Location + '</li>');
+                });
+
+                // Update the dropdown options after fetching the data
+                populateDropdownOptions(data);
+            }
+        });
+    }
+
+
+
+</script>
+
+<table id="example" class="display">
+    <!-- Configuración de la tabla con DataTables -->
+</table>
+
+
+<script>
+
+    if ($.fn.DataTable.isDataTable('#WarehouseLocationNN-grid')) {
+        $('#WarehouseLocationNN-grid').DataTable().destroy();
+        $('#WarehouseLocationNN-grid').empty(); // Optional: Clear table contents
+   
+
+    $(document).ready(function () {
+        var table = $('#WarehouseLocationNN-grid').DataTable({
+            // Opciones de DataTables
+           // processing: true,
+            //serverSide: true,
+            //ajax: {
+            //    url: '/your-endpoint',
+            //    type: 'POST'
+            //},
+            //columns: [
+            //    { data: 'name', name: 'name' },
+            //    { data: 'location', name: 'location', className: 'warehouse-location-column' }, // Añadir clase aquí
+            //    {
+            //        data: 'id', name: 'id', render: function (data, type, row) {
+            //            return '<button>Edit</button>';
+            //        }
+            //    }
+            //],
+            drawCallback: function () {
+                // Asignar IDs a las columnas después de que DataTables dibuje la tabla
+                $('#WarehouseLocationNN-grid thead th').each(function (index) {
+                    if ($(this).hasClass('warehouse-location-column')) {
+                        $(this).attr('id', 'warehouse-location-header');
+                    }
+                });
+            }
+        });
+    });
+    }
+</script>

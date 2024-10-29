@@ -1,0 +1,13 @@
+﻿{
+  "DataProvider": "sqlserver",
+  //"DataConnectionString": "Data Source=VIVIANA\\SQLEXPRESS;Initial Catalog=ECOMM_MovingSupplie_QA_August2024;Integrated Security=True;Persist Security Info=False;Pooling=True;Min Pool Size=100;Max Pool Size=500;",
+  //"DataConnectionString": "Data Source=EC2AMAZ-0K8HAU6\\SQLEXPRESS;Database=ECOMM_MovingSupplie_QA;Integrated Security=False;Persist Security Info=False;User ID=ECOMM_MovingSup;Password=24Etods**323AdBD",
+  "DataConnectionString": "Data Source=ecommmovingsupplies.cb2nwpagclxt.us-east-2.rds.amazonaws.com;Initial Catalog=ECOMM_MovingSupplie_QA;Integrated Security=False;Persist Security Info=False;User ID=ECOMM_MovingSup;Password=24Etods**323AdBD;MultipleActiveResultSets=True;",
+  "RawDataSettings": {}
+}
+
+/*
+    -- Verificar el uso del espacio en la base de datos
+    USE [ECOMM_MovingSupplie_QA];
+    EXEC sp_spaceused;
+*/

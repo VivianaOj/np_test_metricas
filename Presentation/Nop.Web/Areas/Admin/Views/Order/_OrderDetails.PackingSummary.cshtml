@@ -1,0 +1,247 @@
+﻿@model OrderModel
+
+<div class="panel-body">
+
+    @foreach (var item in Model.BoxGenerator)
+    {
+        @*<nop-panel asp-name="company-info" asp-icon="fa fa-info" asp-title="@T("Admin.packing.Info") @Html.Raw(item.BoxName)" asp-hide-block-attribute-name="packing" asp-hide="false">*@
+    <div class="panel panel-default sub-panel">
+        <div class="panel-body sub-panel">
+            @if (item.IsAsShip)
+            {
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <label>@T("Admin.packing.ownBox") @T("Admin.packing.ownBox")</label>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-text-row">@Html.Raw(item.BoxName)</div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="@item.BoxName" />
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-text-row">@Html.Raw(item.BoxName)</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <nop-label asp-for="@item.BoxSize" />
+                    </div>
+                    <div class="col-md-9">
+                        <div class="form-text-row">@Html.Raw(item.BoxSize)</div>
+                    </div>
+                </div>
+            }
+
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.BoxContentWeight" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@Html.Raw(item.BoxContentWeight)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.BoxTotalWeight" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@Html.Raw(item.BoxTotalWeight)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.Height" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@Html.Raw(item.Height)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.Width" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@Html.Raw(item.Width)</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.Length" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@Html.Raw(item.Length)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.TotalVolumenBox" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@string.Format("{0:#,##0}", item.TotalVolumenBox)</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <nop-label asp-for="@item.VolumenBox" />
+                </div>
+                <div class="col-md-9">
+                    <div class="form-text-row">@string.Format("{0:#,##0}", item.VolumenBox)</div>
+                </div>
+            </div>
+
+        </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <nop-label asp-for="@item.PercentBoxVolumePacked" />
+            </div>
+            <div class="col-md-9">
+                <div class="form-text-row">@string.Format("{0:#,##0}", item.PercentBoxVolumePacked)</div>
+            </div>
+        </div>
+
+        <div class="panel-body">
+        </div>
+
+        <div class="panel-body">
+
+            <div class="panel-body">
+                <div class="form-group">
+                    <div class="col-md-12" style="overflow-x: auto;">
+                        <script>
+                            function toggleOrderItemEdit(id) {
+                                location.href = "/Admin/Product/Edit/" + id;
+                            }
+                        </script>
+
+
+                        <table class="table table-hover table-bordered">
+                            <col />
+                            <col />
+
+
+
+                            <thead>
+                                <tr>
+                                    @*<th>
+                                        @T("Admin.Orders.Products.Picture")
+                                    </th>*@
+                                    <th>
+                                        @T("Admin.Orders.Products.ProductName")
+                                    </th>
+
+
+                                    <th>
+                                        @T("Admin.Orders.Products.Quantity")
+                                    </th>
+                                    <th>
+                                        @T("Admin.Orders.Products.View")
+                                    </th>
+
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var itemProduct in item.PackedItems)
+                                {
+                                    <tr>
+                                        @*<td class="text-center">
+                                            <img src="@item.PictureThumbnailUrl" alt="" title="" />
+                                        </td>*@
+                                        <td style="width: 15%;" class="text-left">
+                                            <em><a asp-controller="Product" asp-action="Edit" asp-route-id="@itemProduct.Id">@itemProduct.ProductName</a></em>
+
+                                            @if (!string.IsNullOrEmpty(itemProduct.Sku))
+                                            {
+                                                <p>
+                                                    <strong>@T("Admin.Orders.Products.SKU")</strong><text>:</text>
+                                                    @itemProduct.Sku
+                                                </p>
+                                            }
+
+
+                                        </td>
+
+                                        <td style="width: 10%;" class="text-center">
+                                            <div>@itemProduct.Quantity</div>
+                                            <div id="pnlEditPvQuantity@(item.Id)">
+
+                                            </div>
+                                        </td>
+                                        <td style="width: 10%;" class="text-center">
+                                            <button type="submit" class="btn btn-default" name="btnEditOrderItem@(itemProduct.Id)" onclick="toggleOrderItemEdit(@itemProduct.Id);return false;" id="btnEditOrderItem@(itemProduct.Id)">
+                                                <i class="fa fa-eye"></i>
+                                                @T("Admin.Common.View")
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        @*</nop-panel>*@
+
+    </div>
+            }
+
+        </div>
+
+  
+
+<script>
+    $(document).ready(function () {
+        $('#addOrderNote').click(function() {
+            var orderNoteMessage = $("#@Html.IdFor(model => model.AddOrderNoteMessage)").val();
+            var orderNoteDownloadId = 0;
+            if ($('#@Html.IdFor(model => model.AddOrderNoteHasDownload)').is(':checked')) {
+                orderNoteDownloadId = $("#@Html.IdFor(model => model.AddOrderNoteDownloadId)").val();
+            }
+            var orderNoteDisplayToCustomer =
+                $("#@Html.IdFor(model => model.AddOrderNoteDisplayToCustomer)").is(':checked');
+            $('#addOrderNote').attr('disabled', true);
+
+            var postData = {
+                DisplayToCustomer: orderNoteDisplayToCustomer,
+                message: orderNoteMessage,
+                downloadId: orderNoteDownloadId,
+                orderId: '@Model.Id'
+            };
+            addAntiForgeryToken(postData);
+
+            $.ajax({
+                cache: false,
+                type: "POST",
+                url: "@(Url.Action("OrderNoteAdd", "Order"))",
+                data: postData,
+                success: function (data, textStatus, jqXHR) {
+                    if (data.Result) {
+                        //reload grid
+                        updateTable('#ordernotes-grid');
+                    } else {
+                        //display errors if returned
+                        display_nop_error(data);
+                    }
+                },
+               complete: function (jqXHR, textStatus) {
+                    $('#addOrderNote').attr('disabled', false);
+                }
+            });
+        });
+    });
+</script>

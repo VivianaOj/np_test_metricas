@@ -1,0 +1,62 @@
+@*model CustomerModel
+
+    <div class="panel-body">
+        @await Html.PartialAsync("Table", new DataTablesModel
+        {
+            Name = "activitylog-grid",
+            UrlRead = new DataUrl("ListActivityLog", "Customer", new RouteValueDictionary { [nameof(Model.CustomerActivityLogSearchModel.CustomerId)] = Model.CustomerActivityLogSearchModel.CustomerId }),
+            Length = Model.CustomerActivityLogSearchModel.PageSize,
+            LengthMenu = Model.CustomerActivityLogSearchModel.AvailablePageSizes,
+            ColumnCollection = new List<ColumnProperty>
+            {
+                new ColumnProperty(nameof(CustomerActivityLogModel.ActivityLogTypeName))
+                {
+                    Title = T("Admin.Customers.Customers.ActivityLog.ActivityLogType").Text,
+                    Width = "300"
+                },
+                new ColumnProperty(nameof(CustomerActivityLogModel.IpAddress))
+                {
+                    Title = T("Admin.Customers.Customers.ActivityLog.IpAddress").Text,
+                    Width = "100"
+                },
+                new ColumnProperty(nameof(CustomerActivityLogModel.Comment))
+                {
+                    Title = T("Admin.Customers.Customers.ActivityLog.Comment").Text
+                },
+                new ColumnProperty(nameof(CustomerActivityLogModel.CreatedOn))
+                {
+                    Title = T("Admin.Customers.Customers.ActivityLog.CreatedOn").Text,
+                    Width = "200",
+                    Render = new RenderDate()
+                }
+            }
+        })
+    </div>
+*@
+
+
+<div class="panel-body">
+    <div id="activitylog-grid_wrapper" class="dataTables_wrapper form-inline dt-bootstrap no-footer">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="dataTables_scroll">
+                    <div class="dataTables_scrollHead" style="overflow: hidden; position: relative; border: 0px; width: 100%;">
+                        <div class="dataTables_scrollHeadInner" style="box-sizing: content-box; width: 1613px; padding-right: 0px;">
+                            <table class="table table-bordered table-hover table-striped dataTable no-footer" width="100%" role="grid" style="margin-left: 0px; width: 1613px;">
+                                <thead>
+                                    <tr role="row">
+                                        <th class="sorting_disabled" rowspan="1" colspan="1" style="width: 299.609px;">Activity Log Type</th>
+                                        <th class="sorting_disabled" rowspan="1" colspan="1" style="width: 99.9531px;">IP Address</th>
+                                        <th class="sorting_disabled" rowspan="1" colspan="1" style="width: 944.641px;">Comment</th>
+                                        <th class="sorting_disabled" rowspan="1" colspan="1" style="width: 199.797px;">Created On</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div><div class="dataTables_scrollBody" style="position: relative; overflow: auto; width: 100%;"><table class="table table-bordered table-hover table-striped dataTable no-footer" width="100%" id="activitylog-grid" role="grid" aria-describedby="activitylog-grid_info" style="width: 100%;"><thead><tr role="row" style="height: 0px;"><th class="sorting_disabled" rowspan="1" colspan="1" style="width: 299.609px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height: 0px; overflow: hidden;">Activity Log Type</div></th><th class="sorting_disabled" rowspan="1" colspan="1" style="width: 99.9531px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height: 0px; overflow: hidden;">IP Address</div></th><th class="sorting_disabled" rowspan="1" colspan="1" style="width: 944.641px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height: 0px; overflow: hidden;">Comment</div></th><th class="sorting_disabled" rowspan="1" colspan="1" style="width: 199.797px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height: 0px; overflow: hidden;">Created On</div></th></tr></thead><tbody><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Stretch Wrap &amp; Dispensers')</td><td>04/10/2024 13:42:21</td></tr><tr role="row" class="even"><td>Public store. View a product</td><td>71.229.15.50</td><td>Public store. Viewed a product details page ('Conventional Stretch Wrap - 47 gauge, 18" x 1,500'')</td><td>04/10/2024 13:40:03</td></tr><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Stretch Wrap &amp; Dispensers')</td><td>04/10/2024 13:38:30</td></tr><tr role="row" class="even"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Truck Safety Equipment')</td><td>04/10/2024 08:23:05</td></tr><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Truck Safety Equipment')</td><td>04/09/2024 15:08:47</td></tr><tr role="row" class="even"><td>Public store. View a product</td><td>71.229.15.50</td><td>Public store. Viewed a product details page ('Melcher Ramp 12'x30" (Single Ramp)')</td><td>04/09/2024 15:08:01</td></tr><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Specialty Cartons')</td><td>04/09/2024 15:07:29</td></tr><tr role="row" class="even"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Professional Grade Moving Blankets')</td><td>04/09/2024 15:00:30</td></tr><tr role="row" class="odd"><td>Public store. Login</td><td>71.229.15.50</td><td>Login</td><td>04/09/2024 15:00:01</td></tr><tr role="row" class="even"><td>Public store. View a product</td><td>71.229.15.50</td><td>Public store. Viewed a product details page ('Warehouse Moving Pad - 1 Dozen')</td><td>04/08/2024 12:06:26</td></tr><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Professional Grade Moving Blankets')</td><td>04/08/2024 12:05:03</td></tr><tr role="row" class="even"><td>Public store. View a product</td><td>71.229.15.50</td><td>Public store. Viewed a product details page ('Small Box')</td><td>04/08/2024 09:26:29</td></tr><tr role="row" class="odd"><td>Public store. View a category</td><td>71.229.15.50</td><td>Public store. Viewed a category details page ('Household Cartons')</td><td>04/08/2024 09:26:23</td></tr><tr role="row" class="even"><td>Public store. Add to shopping cart</td><td>71.229.15.50</td><td>Added a product to Shopping Cart ('Wardrobe Bar 24"')</td><td>04/08/2024 08:49:05</td></tr><tr role="row" class="odd"><td>Public store. View a product</td><td>71.229.15.50</td><td>Public store. Viewed a product details page ('Wardrobe Bar 24"')</td><td>04/08/2024 08:48:59</td></tr></tbody></table></div>
+                </div>
+            </div>
+        </div><div class="row margin-t-5"><div class="col-lg-5 col-xs-12"><div class="float-lg-left"><div class="dataTables_paginate paging_simple_numbers" id="activitylog-grid_paginate"><ul class="pagination"><li class="paginate_button previous disabled" id="activitylog-grid_previous"><a href="#" aria-controls="activitylog-grid" data-dt-idx="0" tabindex="0"><i class="k-icon k-i-arrow-w"></i></a></li><li class="paginate_button active"><a href="#" aria-controls="activitylog-grid" data-dt-idx="1" tabindex="0">1</a></li><li class="paginate_button next disabled" id="activitylog-grid_next"><a href="#" aria-controls="activitylog-grid" data-dt-idx="2" tabindex="0"><i class="k-icon k-i-arrow-e"></i></a></li></ul></div></div></div><div class="col-lg-3 col-xs-12"><div class="text-center"><div class="dataTables_length" id="activitylog-grid_length"><label>Show <select name="activitylog-grid_length" aria-controls="activitylog-grid" class="form-control input-sm"><option value="7">7</option><option value="15">15</option><option value="20">20</option><option value="50">50</option><option value="100">100</option></select> items</label></div></div></div><div class="col-lg-3 col-xs-12"><div class="float-lg-right text-center"><div class="dataTables_info" id="activitylog-grid_info" role="status" aria-live="polite">1-15 of 15 items</div></div></div><div class="col-lg-1 col-xs-12"><div class="float-lg-right text-center data-tables-refresh"><div class="dt-buttons btn-group"><button class="btn btn-default" tabindex="0" aria-controls="activitylog-grid" type="button"><span><i class="fa fa-refresh" style="padding-left: 5px"></i></span></button> </div></div></div></div>
+    </div>
+    <script>function updateTable(n) { $(n).DataTable().ajax.reload(); !1 && ($("#mastercheckbox").attr("checked", !1).change(), selectedIds = []) } $(document).ready(function () { $("#activitylog-grid").DataTable({ processing: !0, serverSide: !0, ajax: { url: "/admin/Customer/ListActivityLog?CustomerId=8926178", type: "POST", dataType: "json", dataSrc: "Data", data: function (n) { return addAntiForgeryToken(n), n } }, scrollX: !0, info: !0, paging: !0, pagingType: "simple_numbers", language: { emptyTable: "No Data Available", info: "_START_-_END_ of _TOTAL_ items", infoEmpty: "No Records", infoFiltered: "(filtered from _MAX_ total entries)", thousands: ",", lengthMenu: "Show _MENU_ items", loadingRecords: "Loading...", processing: "<i class='fa fa-refresh fa-spin'><\/i>", search: "Search:", zeroRecords: "No matching records found", paginate: { first: "<i class='k-icon k-i-seek-w'><\/i>", last: "<i class='k-icon k-i-seek-e'><\/i>", next: "<i class='k-icon k-i-arrow-e'><\/i>", previous: "<i class='k-icon k-i-arrow-w'><\/i>" }, aria: { sortAscending: ": activate to sort column ascending", sortDescending: ": activate to sort column descending" } }, pageLength: 15, lengthMenu: [7, 15, 20, 50, 100], ordering: !1, buttons: [{ name: "refresh", text: '<i class="fa fa-refresh" style="padding-left: 5px"><\/i>', action: function () { updateTable("#activitylog-grid") } }], dom: "<'row'<'col-md-12't>><'row margin-t-5'<'col-lg-5 col-xs-12'<'float-lg-left'p>><'col-lg-3 col-xs-12'<'text-center'l>><'col-lg-3 col-xs-12'<'float-lg-right text-center'i>><'col-lg-1 col-xs-12'<'float-lg-right text-center data-tables-refresh'B>>>", columns: [{ title: "Activity Log Type", width: "300", visible: !0, searchable: !1, render: $.fn.dataTable.render.text(), data: "ActivityLogTypeName" }, { title: "IP Address", width: "100", visible: !0, searchable: !1, render: $.fn.dataTable.render.text(), data: "IpAddress" }, { title: "Comment", width: "", visible: !0, searchable: !1, render: $.fn.dataTable.render.text(), data: "Comment" }, { title: "Created On", width: "200", visible: !0, searchable: !1, render: function (n) { return n ? moment(n).locale("en").format("MM/DD/YYYY HH:mm:ss") : null }, data: "CreatedOn" }] }) })</script>
+</div>

@@ -1,0 +1,36 @@
+﻿@model CompanyModel
+
+<div class="panel-body">
+   @await Html.PartialAsync("Table", new DataTablesModel
+{
+    Name = "customer-AllCredits-grid",
+    UrlRead = new DataUrl("AllCreditsSelect", "Company", new RouteValueDictionary { [nameof(Model.CompanyAllCreditSearchModel.CompanyId)] = Model.CompanyAllCreditSearchModel.CompanyId }),
+    Length = Model.CompanyAllCreditSearchModel.PageSize,
+    LengthMenu = Model.CompanyAllCreditSearchModel.AvailablePageSizes,
+    ColumnCollection = new List<ColumnProperty>
+        {
+            new ColumnProperty(nameof(CustomerAccountCreditModel.Name))
+            {
+                Title = T("Admin.company.credit.Name").Text
+            },
+
+            new ColumnProperty(nameof(CustomerAccountCreditModel.Transid))
+            {
+                Title = T("Admin.company.credit.Transid").Text
+            },
+             new ColumnProperty(nameof(CustomerAccountCreditModel.TotalApply))
+            {
+                Title = T("Admin.company.credit.TotalApply").Text
+            },
+
+               new ColumnProperty(nameof(CustomerAccountCreditModel.DateApplyUpdate))
+            {
+                Title = T("Admin.company.credit.DateApplyUpdate").Text
+            },
+              
+        }
+})
+</div>
+<div class="panel-body">
+
+</div>
